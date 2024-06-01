@@ -2,8 +2,10 @@
 ![Lagrange.onebot](https://socialify.git.ci/LSTM-Kirigaya/Lagrange.onebot/image?description=1&font=Jost&forks=1&issues=1&language=1&logo=https%3A%2F%2Fpicx.zhimg.com%2F80%2Fv2-bdae55043d61d7bcfeeabead6e953959_1440w.jpeg%3Fsource%3Dd16d100b&name=1&pattern=Circuit%20Board&pulls=1&stargazers=1&theme=Light)
 
 <div align="center">
-<a herf="https://document.kirigaya.cn/blogs/lagrange.onebot/main.html" target="_blank">Document | 文档</a>
+
+[Document | 文档](https://document.kirigaya.cn/blogs/lagrange.onebot/main.html)
 </div>
+
 
 
 # Lagrange.onebot
@@ -11,6 +13,27 @@
 基于 Lagrange.Core 实现的 NTQQ 接入框架。
 
 > 本项目由于使用了装饰器特性，所以目前只支持使用 typescript 进行开发。
+
+## 相关项目
+
+<table>
+<tr>
+  <td><a href="https://github.com/LagrangeDev/Lagrange.Core">Lagrange.Core</a></td>
+  <td> TypeScript 实现轻量级 OneBot 协议的机器人框架（👈你在这里</td>
+</tr>
+<tr>
+  <td><a href="https://github.com/LagrangeDev/Lagrange.Core">Lagrange.Core</a></td>
+  <td>NTQQ 的协议实现</td>
+</tr>
+<tr>
+  <td><a href="https://github.com/whitechi73/OpenShamrock">OpenShamrock</a></td>
+  <td>基于 Lsposed 实现 OneBot 标准的机器人框架</td>
+</tr>
+<tr>
+  <td><a href="https://github.com/chrononeko/chronocat">Chronocat</a></td>
+  <td>基于 Electron 的、模块化的 Satori 框架</td>
+</tr>
+</table>
 
 ## 安装与使用
 
