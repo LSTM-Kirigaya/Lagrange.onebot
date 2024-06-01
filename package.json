@@ -6,6 +6,16 @@
         "email": "1193466151@qq.com"
     },
     "description": "基于 Lagrange.Core 实现的 NTQQ 接入框架",
+    "keywords": [
+        "qq",
+        "lagrange.core",
+        "server",
+        "framework"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/LSTM-Kirigaya/Lagrange.onebot"
+    },
     "scripts": {
         "build": "tsc",
         "start": "serve dist",
