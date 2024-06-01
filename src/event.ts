@@ -53,7 +53,11 @@ export function onMessage(event: Buffer) {
     const messageJson = JSON.parse(messageBuffer) as Lagrange.Message;
     // 忽略系统 message
     if (messageJson.post_type !== 'meta_event') {
-        pipe.run(messageJson);
+        try {
+            pipe.run(messageJson);
+        } catch (error) {
+            logger.error('pipe.run 调度时发生错误' + error);
+        }
     }
 }
 
