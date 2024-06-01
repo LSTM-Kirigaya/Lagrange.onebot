@@ -18,7 +18,7 @@
 
 <table>
 <tr>
-  <td><a href="https://github.com/LagrangeDev/Lagrange.Core">Lagrange.Core</a></td>
+  <td><a href="https://github.com/LagrangeDev/Lagrange.Core">Lagrange.onebot</a></td>
   <td> TypeScript 实现轻量级 OneBot 协议的机器人框架（👈你在这里</td>
 </tr>
 <tr>
@@ -137,3 +137,7 @@ export class Impl {
 效果预览
 
 ![](https://picx.zhimg.com/80/v2-582932c3b84177184ce83aa8d12ee94b_1440w.png)
+
+更多使用方法，请参考：
+- [Lagrange.onebot 官方文档]()
+- [Langrange.RagBot 一个将 RAG 加持下的大模型接入 QQ 的项目](https://github.com/LSTM-Kirigaya/Lagrange.RagBot)
