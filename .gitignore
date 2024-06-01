@@ -1,0 +1,15 @@
+app
+docs
+blog-vecdb
+dist
+node_modules
+__pycache__
+*.pyc
+*.pyd
+*.pyi
+scripts/*.ts
+audio
+images
+test/dist
+test/node_modules
+publish

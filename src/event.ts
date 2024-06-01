@@ -1,0 +1,63 @@
+import lagrangeMapper from './lagrange-mapping';
+
+import type * as Lagrange from './type';
+import { LagrangeContext, LagrangeServer } from './context';
+import { assert } from 'console';
+import { logger } from './utils';
+
+class Pipe {
+    server: LagrangeServer;
+
+    public registerServer(server: LagrangeServer) {
+        this.server = server;
+    }
+
+    public run(message: Lagrange.Message) {
+        switch (message.post_type) {
+            case 'message': this.messagePipe(message); break;
+            case 'notice': this.noticePipe(message); break;
+            case 'request':this.requestPipe(message); break;
+            default: break;
+        }
+    }
+    
+    // 处理 message 类型的 post_type 消息
+    public messagePipe(message: Lagrange.MessagePostType) {
+        switch (message.message_type) {
+            case 'private':
+                lagrangeMapper.resolvePrivateUser(new LagrangeContext(message));
+                break;
+            case 'group':
+                lagrangeMapper.resolveGroup(new LagrangeContext(message));
+                break;
+            default:
+                break;
+        }
+    }
+    
+    // 处理 notice 类型的 post_type 消息
+    public noticePipe(message: Lagrange.NoticePostType) {
+    
+    }
+    
+    // 处理 request 类型的 post_type 消息
+    public requestPipe(message: Lagrange.RequestPostType) {
+    
+    }
+}
+
+export const pipe = new Pipe();
+
+export function onMessage(event: Buffer) {
+    const messageBuffer = event.toString('utf-8');
+    const messageJson = JSON.parse(messageBuffer) as Lagrange.Message;
+    // 忽略系统 message
+    if (messageJson.post_type !== 'meta_event') {
+        pipe.run(messageJson);
+    }
+}
+
+
+export function onClose() {
+    logger.info('lagrangeServer 服务器成功关闭')
+}

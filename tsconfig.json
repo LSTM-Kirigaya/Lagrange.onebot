@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "module": "CommonJS",
+        "target": "ES2020",
+        "outDir": "dist",
+        "esModuleInterop": true,
+        "experimentalDecorators": true,
+        "declaration": true,
+        "declarationDir": "dist",
+        "typeRoots": ["./types"]
+    },
+    "include": [
+        "src/**/*"
+    ]
+}
