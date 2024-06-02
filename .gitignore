@@ -13,3 +13,4 @@ images
 test/dist
 test/node_modules
 publish
+test/*.js

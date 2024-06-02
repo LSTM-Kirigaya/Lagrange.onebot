@@ -62,7 +62,7 @@ class Impl {
     echo(c: LagrangeContext<Lagrange.Message>) {
         const msg = c.message;
         if (msg.post_type === 'message') {
-            const text = msg.raw_message;
+            const text = msg.raw_message.trim();
             if (text.startsWith('\\echo')) {
                 c.sendMessage(text.substring(5));
                 c.finishSession();

@@ -1,4 +1,4 @@
-import { mapper, LagrangeContext, PrivateMessage, plugins } from '../dist';
+import { mapper, LagrangeContext, PrivateMessage, GroupMessage, plugins } from '../dist';
 
 export class Impl {
 
@@ -13,5 +13,11 @@ export class Impl {
         // c.sendMessage(reply);
 
         c.finishSession();
+    }
+
+    @mapper.onGroup(956419963, { at: true })
+    @plugins.use('echo')
+    async handleTestGroup(c: LagrangeContext<GroupMessage>) {
+        c.sendMessage('你刚刚发送了' + c.message.raw_message);
     }
 }
