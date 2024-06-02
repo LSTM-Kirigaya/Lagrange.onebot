@@ -57,9 +57,9 @@ class LagrangeMapper {
     public resolveGroup(c: LagrangeContext<Lagrange.GroupMessage>) {
         const group_id = c.message.group_id;
         const groupStorage = this._groupStorage.get(group_id);
-        const config = groupStorage.config || {};
-        config.at = config.at || false;
         if (groupStorage) {
+            const config = groupStorage.config || {};
+            config.at = config.at || false;
             const msg = c.message;
             const firstSegment = msg.message[0];
             const robotQQ = c.qq + '';
