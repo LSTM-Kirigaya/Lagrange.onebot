@@ -497,7 +497,7 @@ export interface FileMessage {
 }
 
 // 加群或者加好友
-export interface AddMessage {
+export interface AddFriendOrGroupMessage {
     post_type: 'request',
     sub_type: 'add',
     user_id: number,
@@ -524,10 +524,10 @@ export interface ApproveMessage {
     self_id: number,
 }
 
-export type Message = MetaMessage | PrivateMessage | GroupMessage | FileMessage | AddMessage | ApproveMessage;
+export type Message = MetaMessage | PrivateMessage | GroupMessage | FileMessage | AddFriendOrGroupMessage | ApproveMessage;
 export type MessagePostType = PrivateMessage | GroupMessage;
 export type NoticePostType = FileMessage | ApproveMessage;
-export type RequestPostType = AddMessage;
+export type RequestPostType = AddFriendOrGroupMessage;
 
 
 export type Thenable<T> = T | Promise<T>;
@@ -555,3 +555,304 @@ export interface InvokerContext<M = Message> {
 
 export type PrivateUserInvokeContext = InvokerContext<PrivateMessage>;
 export type GroupUserInvokeContext = InvokerContext<GroupMessage>;
+
+export interface CommonResponse<T> {
+    status: string,
+    retcode: number,
+    data: T,
+    message?: string,
+    echo?: any
+}
+
+// response type for send_private_msg
+export interface SendPrivateMsgResponse {
+    // 消息 ID
+    message_id: number;
+}
+
+// response type for send_group_msg
+export interface SendGroupMsgResponse {
+    // 消息 ID
+    message_id: number;
+}
+
+// response type for send_msg
+export interface SendMsgResponse {
+    // 消息 ID
+    message_id: number;
+}
+
+// response type for delete_msg
+export interface DeleteMsgResponse {
+}
+
+// response type for get_msg
+export interface GetMsgResponse {
+    // 发送时间
+    time: number;
+    // 消息类型，同 [消息事件](../event/message.md)
+    message_type: string;
+    // 消息 ID
+    message_id: number;
+    // 消息真实 ID
+    real_id: number;
+    // 发送人信息，同 [消息事件](../event/message.md)
+    sender: Sender;
+    // 消息内容
+    message: string | Send.Default[];
+}
+
+// response type for get_forward_msg
+export interface GetForwardMsgResponse {
+    // 消息内容，使用 [消息的数组格式](../message/any[].md) 表示，数组中的消息段全部为 [`node` 消息段](../message/segment.md#合并转发自定义节点)
+    message: string | Send.Default[];
+}
+
+// response type for send_like
+export interface SendLikeResponse {
+}
+
+// response type for set_group_kick
+export interface SetGroupKickResponse {
+}
+
+// response type for set_group_ban
+export interface SetGroupBanResponse {
+}
+
+// response type for set_group_anonymous_ban
+export interface SetGroupAnonymousBanResponse {
+}
+
+// response type for set_group_whole_ban
+export interface SetGroupWholeBanResponse {
+}
+
+// response type for set_group_admin
+export interface SetGroupAdminResponse {
+}
+
+// response type for set_group_anonymous
+export interface SetGroupAnonymousResponse {
+}
+
+// response type for set_group_card
+export interface SetGroupCardResponse {
+}
+
+// response type for set_group_name
+export interface SetGroupNameResponse {
+}
+
+// response type for set_group_leave
+export interface SetGroupLeaveResponse {
+}
+
+// response type for set_group_special_title
+export interface SetGroupSpecialTitleResponse {
+}
+
+// response type for set_friend_add_request
+export interface SetFriendAddRequestResponse {
+}
+
+// response type for set_group_add_request
+export interface SetGroupAddRequestResponse {
+}
+
+// response type for get_login_info
+export interface GetLoginInfoResponse {
+    // QQ 号
+    user_id: number;
+    // QQ 昵称
+    nickname: string;
+}
+
+// response type for get_stranger_info
+export interface GetStrangerInfoResponse {
+    // QQ 号
+    user_id: number;
+    // 昵称
+    nickname: string;
+    // 性别，`male` 或 `female` 或 `unknown`
+    sex: string;
+    // 年龄
+    age: number;
+}
+
+// response type for get_friend_list
+export interface GetFriendListResponse {
+    // QQ 号
+    user_id: number;
+    // 昵称
+    nickname: string;
+    // 备注名
+    remark: string;
+}
+
+// response type for get_group_info
+export interface GetGroupInfoResponse {
+    // 群号
+    group_id: number;
+    // 群名称
+    group_name: string;
+    // 成员数
+    member_count: number;
+    // 最大成员数（群容量）
+    max_member_count: number;
+}
+
+// response type for get_group_list
+export type GetGroupListResponse = GetGroupInfoResponse[];
+
+// response type for get_group_member_info
+export interface GetGroupMemberInfoResponse {
+    // 群号
+    group_id: number;
+    // QQ 号
+    user_id: number;
+    // 昵称
+    nickname: string;
+    // 群名片／备注
+    card: string;
+    // 性别，`male` 或 `female` 或 `unknown`
+    sex: string;
+    // 年龄
+    age: number;
+    // 地区
+    area: string;
+    // 加群时间戳
+    join_time: number;
+    // 最后发言时间戳
+    last_sent_time: number;
+    // 成员等级
+    level: string;
+    // 角色，`owner` 或 `admin` 或 `member`
+    role: string;
+    // 是否不良记录成员
+    unfriendly: boolean;
+    // 专属头衔
+    title: string;
+    // 专属头衔过期时间戳
+    title_expire_time: number;
+    // 是否允许修改群名片
+    card_changeable: boolean;
+}
+
+// response type for get_group_member_list
+export type GetGroupMemberListResponse = GetGroupMemberInfoResponse[];
+
+// response type for get_group_honor_info
+export interface GetGroupHonorInfoResponse {
+    // 群号
+    group_id: number;
+    // 当前龙王，仅 `type` 为 `talkative` 或 `all` 时有数据
+    current_talkative: ICurrentTalkative;
+    // 历史龙王，仅 `type` 为 `talkative` 或 `all` 时有数据
+    talkative_list: IHonorObject[];
+    // 群聊之火，仅 `type` 为 `performer` 或 `all` 时有数据
+    performer_list: IHonorObject[];
+    // 群聊炽焰，仅 `type` 为 `legend` 或 `all` 时有数据
+    legend_list: IHonorObject[];
+    // 冒尖小春笋，仅 `type` 为 `strong_newbie` 或 `all` 时有数据
+    strong_newbie_list: IHonorObject[];
+    // 快乐之源，仅 `type` 为 `emotion` 或 `all` 时有数据
+    emotion_list: IHonorObject[];
+}
+
+interface ICurrentTalkative {
+    // QQ 号
+    user_id: number;
+    // 昵称
+    nickname: string;
+    // 头像 URL
+    avatar: string;
+    // 持续天数
+    day_count: number;
+}
+
+interface IHonorObject {
+    // QQ 号
+    user_id: number;
+    // 昵称
+    nickname: string;
+    // 头像 URL
+    avatar: string;
+    // 荣誉描述
+    description: string;
+}
+
+// response type for get_cookies
+export interface GetCookiesResponse {
+    // Cookies
+    cookies: string;
+}
+
+// response type for get_csrf_token
+export interface GetCsrfTokenResponse {
+    // CSRF Token
+    token: number;
+}
+
+// response type for get_credentials
+export interface GetCredentialsResponse {
+    // Cookies
+    cookies: string;
+    // CSRF Token
+    csrf_token: number;
+}
+
+// response type for get_record
+export interface GetRecordResponse {
+    // 转换后的语音文件路径，如 `/home/somebody/cqhttp/data/record/0B38145AA44505000B38145AA4450500.mp3`
+    file: string;
+}
+
+// response type for get_image
+export interface GetImageResponse {
+    // 下载后的图片文件路径，如 `/home/somebody/cqhttp/data/image/6B4DE3DFD1BD271E3297859D41C530F5.jpg`
+    file: string;
+}
+
+// response type for can_send_image
+export interface CanSendImageResponse {
+    // 是或否
+    yes: boolean;
+}
+
+// response type for can_send_record
+export interface CanSendRecordResponse {
+    // 是或否
+    yes: boolean;
+}
+
+// response type for get_status
+export interface GetStatusResponse {
+    // 当前 QQ 在线，`null` 表示无法查询到在线状态
+    online: boolean;
+    // 状态符合预期，意味着各模块正常运行、功能正常，且 QQ 在线
+    good: boolean;
+    // OneBot 实现自行添加的其它内容
+    [name: string]: any;
+}
+
+// response type for get_version_info
+export interface GetVersionInfoResponse {
+    // 应用标识，如 `mirai-native`
+    app_name: string;
+    // 应用版本，如 `1.2.3`
+    app_version: string;
+    // OneBot 标准版本，如 `v11`
+    protocol_version: string;
+    // OneBot 实现自行添加的其它内容
+    [name: string]: any;
+}
+
+// response type for set_restart
+export interface SetRestartResponse {
+}
+
+// response type for clean_cache
+export interface CleanCacheResponse {
+}
+

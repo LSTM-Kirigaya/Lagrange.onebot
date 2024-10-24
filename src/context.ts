@@ -25,16 +25,26 @@ export class LagrangeContext<T extends Lagrange.Message> {
         this.qq = lagrangeServer.qq;
     }
 
-    public send(apiJSON: Lagrange.ApiJSON) {
+    public send<T>(apiJSON: Lagrange.ApiJSON): Promise<Lagrange.CommonResponse<T> | Error> {
         const ws = this.ws;
         const fin = this.fin;        
-        return new Promise<Error>(resolve => {
-            if (!fin) {
+        return new Promise<Lagrange.CommonResponse<T> | Error>(resolve => {
+            ws.onmessage = (event) => {
+                const payload = JSON.parse(event.data.toString());                
+                if (payload && payload.meta_event_type !== 'heartbeat') {
+                    resolve(payload as Lagrange.CommonResponse<T>);
+                }
+            }
+
+            if (!fin) {                
                 ws.send(JSON.stringify(apiJSON), (err: Error) => {
-                    resolve(err);
+                    if (err) {
+                        logger.warning('ws 发送消息错误');
+                        resolve(err);
+                    }
                 });
             } else {
-                // logger.warning('会话已经结束，send 已经停用，检查你的代码！');
+                logger.warning('会话已经结束，send 已经停用，检查你的代码！');
                 resolve(undefined);
             }
         });
@@ -56,7 +66,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param auto_escape 消息内容是否作为纯文本发送（即不解析 CQ 码），只在 message 字段是字符串时有效
      */
     public sendPrivateMsg(user_id: number, message: string | Lagrange.Send.Default[], auto_escape: boolean = false) {
-        return this.send({
+        return this.send<Lagrange.SendPrivateMsgResponse>({
             action: 'send_private_msg',
             params: { user_id, message, auto_escape }
         });
@@ -69,7 +79,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param auto_escape 消息内容是否作为纯文本发送（即不解析 CQ 码），只在 message 字段是字符串时有效
      */
     public sendGroupMsg(group_id: number, message: string | Lagrange.Send.Default[], auto_escape: boolean = false) {
-        return this.send({
+        return this.send<Lagrange.SendGroupMsgResponse>({
             action: 'send_group_msg',
             params: { group_id, message, auto_escape }
         });
@@ -84,7 +94,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param auto_escape 消息内容是否作为纯文本发送（即不解析 CQ 码），只在 message 字段是字符串时有效
      */
     public sendMsg(message_type?: 'private' | 'group', user_id?: number, group_id?: number, message?: string | Lagrange.Send.Default[], auto_escape: boolean = false) {
-        return this.send({
+        return this.send<Lagrange.SendMsgResponse>({
             action: 'send_msg',
             params: { message_type, user_id, group_id, message, auto_escape }
         });
@@ -112,7 +122,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param message_id 消息 ID
      */
     public deleteMsg(message_id: number) {
-        return this.send({
+        return this.send<Lagrange.DeleteMsgResponse>({
             action: 'delete_msg',
             params: { message_id }
         });
@@ -123,7 +133,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param message_id 消息 ID
      */
     public getMsg(message_id: number) {
-        return this.send({
+        return this.send<Lagrange.GetMsgResponse>({
             action: 'get_msg',
             params: { message_id }
         });
@@ -134,7 +144,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param id 合并转发 ID
      */
     public getForwardMsg(id: string) {
-        return this.send({
+        return this.send<Lagrange.GetForwardMsgResponse>({
             action: 'get_forward_msg',
             params: { id }
         });
@@ -146,7 +156,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param times 赞的次数，每个好友每天最多 10 次
      */
     public sendLike(user_id: number, times: number = 1) {
-        return this.send({
+        return this.send<Lagrange.SendLikeResponse>({
             action: 'send_like',
             params: { user_id, times }
         });
@@ -159,7 +169,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param reject_add_request 拒绝此人的加群请求
      */
     public setGroupKick(group_id: number, user_id: number, reject_add_request: boolean = false) {
-        return this.send({
+        return this.send<Lagrange.SetGroupKickResponse>({
             action: 'set_group_kick',
             params: { group_id, user_id, reject_add_request }
         });
@@ -172,7 +182,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param duration 禁言时长，单位秒，0 表示取消禁言
      */
     public setGroupBan(group_id: number, user_id: number, duration: number = 30 * 60) {
-        return this.send({
+        return this.send<Lagrange.SetGroupBanResponse>({
             action: 'set_group_ban',
             params: { group_id, user_id, duration }
         });
@@ -186,7 +196,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param duration 禁言时长，单位秒，无法取消匿名用户禁言
      */
     public setGroupAnonymousBan(group_id: number, anonymous: object, anonymous_flag: string, duration: number = 30 * 60) {
-        return this.send({
+        return this.send<Lagrange.SetGroupAnonymousBanResponse>({
             action: 'set_group_anonymous_ban',
             params: { group_id, anonymous, anonymous_flag, duration }
         });
@@ -198,7 +208,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param enable 是否禁言
      */
     public setGroupWholeBan(group_id: number, enable: boolean = true) {
-        return this.send({
+        return this.send<Lagrange.SetGroupWholeBanResponse>({
             action: 'set_group_whole_ban',
             params: { group_id, enable }
         });
@@ -211,7 +221,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param enable true 为设置，false 为取消
      */
     public setGroupAdmin(group_id: number, user_id: number, enable: boolean = true) {
-        return this.send({
+        return this.send<Lagrange.SetGroupAdminResponse>({
             action: 'set_group_admin',
             params: { group_id, user_id, enable }
         });
@@ -223,7 +233,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param enable 是否允许匿名聊天
      */
     public setGroupAnonymous(group_id: number, enable: boolean = true) {
-        return this.send({
+        return this.send<Lagrange.SetGroupAnonymousResponse>({
             action: 'set_group_anonymous',
             params: { group_id, enable }
         });
@@ -236,7 +246,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param card 群名片内容，不填或空字符串表示删除群名片
      */
     public setGroupCard(group_id: number, user_id: number, card: string = "") {
-        return this.send({
+        return this.send<Lagrange.SetGroupCardResponse>({
             action: 'set_group_card',
             params: { group_id, user_id, card }
         });
@@ -248,7 +258,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param group_name 新群名
      */
     public setGroupName(group_id: number, group_name: string) {
-        return this.send({
+        return this.send<Lagrange.SetGroupNameResponse>({
             action: 'set_group_name',
             params: { group_id, group_name }
         });
@@ -260,7 +270,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param is_dismiss 是否解散，如果登录号是群主，则仅在此项为 true 时能够解散
      */
     public setGroupLeave(group_id: number, is_dismiss: boolean = false) {
-        return this.send({
+        return this.send<Lagrange.SetGroupLeaveResponse>({
             action: 'set_group_leave',
             params: { group_id, is_dismiss }
         });
@@ -274,7 +284,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param duration 专属头衔有效期，单位秒，-1 表示永久，不过此项似乎没有效果，可能是只有某些特殊的时间长度有效，有待测试
      */
     public setGroupSpecialTitle(group_id: number, user_id: number, special_title: string = "", duration: number = -1) {
-        return this.send({
+        return this.send<Lagrange.SetGroupSpecialTitleResponse>({
             action: 'set_group_special_title',
             params: { group_id, user_id, special_title, duration }
         });
@@ -287,7 +297,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param remark 添加后的好友备注（仅在同意时有效）
      */
     public setFriendAddRequest(flag: string, approve: boolean = true, remark: string = "") {
-        return this.send({
+        return this.send<Lagrange.SetFriendAddRequestResponse>({
             action: 'set_friend_add_request',
             params: { flag, approve, remark }
         });
@@ -301,7 +311,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param reason 拒绝理由（仅在拒绝时有效）
      */
     public setGroupAddRequest(flag: string, sub_type: string, approve: boolean = true, reason: string = "") {
-        return this.send({
+        return this.send<Lagrange.SetGroupAddRequestResponse>({
             action: 'set_group_add_request',
             params: { flag, sub_type, approve, reason }
         });
@@ -311,7 +321,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @description 获取登录号信息
      */
     public getLoginInfo() {
-        return this.send({
+        return this.send<Lagrange.GetLoginInfoResponse>({
             action: 'get_login_info',
             params: {  }
         });
@@ -323,7 +333,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param no_cache 是否不使用缓存（使用缓存可能更新不及时，但响应更快）
      */
     public getStrangerInfo(user_id: number, no_cache: boolean = false) {
-        return this.send({
+        return this.send<Lagrange.GetStrangerInfoResponse>({
             action: 'get_stranger_info',
             params: { user_id, no_cache }
         });
@@ -333,7 +343,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @description 获取好友列表
      */
     public getFriendList() {
-        return this.send({
+        return this.send<Lagrange.GetFriendListResponse>({
             action: 'get_friend_list',
             params: {  }
         });
@@ -345,7 +355,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param no_cache 是否不使用缓存（使用缓存可能更新不及时，但响应更快）
      */
     public getGroupInfo(group_id: number, no_cache: boolean = false) {
-        return this.send({
+        return this.send<Lagrange.GetGroupInfoResponse>({
             action: 'get_group_info',
             params: { group_id, no_cache }
         });
@@ -355,7 +365,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @description 获取群列表
      */
     public getGroupList() {
-        return this.send({
+        return this.send<Lagrange.GetGroupListResponse>({
             action: 'get_group_list',
             params: {  }
         });
@@ -368,7 +378,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param no_cache 是否不使用缓存（使用缓存可能更新不及时，但响应更快）
      */
     public getGroupMemberInfo(group_id: number, user_id: number, no_cache: boolean = false) {
-        return this.send({
+        return this.send<Lagrange.GetGroupMemberInfoResponse>({
             action: 'get_group_member_info',
             params: { group_id, user_id, no_cache }
         });
@@ -379,7 +389,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param group_id 群号
      */
     public getGroupMemberList(group_id: number) {
-        return this.send({
+        return this.send<Lagrange.GetGroupMemberListResponse>({
             action: 'get_group_member_list',
             params: { group_id }
         });
@@ -391,7 +401,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param type 要获取的群荣誉类型，可传入 talkative performer legend strong_newbie emotion 以分别获取单个类型的群荣誉数据，或传入 all 获取所有数据
      */
     public getGroupHonorInfo(group_id: number, type: string) {
-        return this.send({
+        return this.send<Lagrange.GetGroupHonorInfoResponse>({
             action: 'get_group_honor_info',
             params: { group_id, type }
         });
@@ -402,7 +412,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param domain 需要获取 cookies 的域名
      */
     public getCookies(domain: string = "") {
-        return this.send({
+        return this.send<Lagrange.GetCookiesResponse>({
             action: 'get_cookies',
             params: { domain }
         });
@@ -412,7 +422,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @description 获取 CSRF Token
      */
     public getCsrfToken() {
-        return this.send({
+        return this.send<Lagrange.GetCsrfTokenResponse>({
             action: 'get_csrf_token',
             params: {  }
         });
@@ -422,7 +432,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @description 获取 QQ 相关接口凭证
      */
     public getCredentials() {
-        return this.send({
+        return this.send<Lagrange.GetCredentialsResponse>({
             action: 'get_credentials',
             params: {  }
         });
@@ -432,7 +442,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @description 获取语音
      */
     public getRecord() {
-        return this.send({
+        return this.send<Lagrange.GetRecordResponse>({
             action: 'get_record',
             params: {  }
         });
@@ -443,7 +453,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param file 收到的图片文件名（消息段的 file 参数），如 6B4DE3DFD1BD271E3297859D41C530F5.jpg
      */
     public getImage(file: string) {
-        return this.send({
+        return this.send<Lagrange.GetImageResponse>({
             action: 'get_image',
             params: { file }
         });
@@ -453,7 +463,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @description 检查是否可以发送图片
      */
     public canSendImage() {
-        return this.send({
+        return this.send<Lagrange.CanSendImageResponse>({
             action: 'can_send_image',
             params: {  }
         });
@@ -463,7 +473,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @description 检查是否可以发送语音
      */
     public canSendRecord() {
-        return this.send({
+        return this.send<Lagrange.CanSendRecordResponse>({
             action: 'can_send_record',
             params: {  }
         });
@@ -473,7 +483,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @description 获取运行状态
      */
     public getStatus() {
-        return this.send({
+        return this.send<Lagrange.GetStatusResponse>({
             action: 'get_status',
             params: {  }
         });
@@ -483,7 +493,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @description 获取版本信息
      */
     public getVersionInfo() {
-        return this.send({
+        return this.send<Lagrange.GetVersionInfoResponse>({
             action: 'get_version_info',
             params: {  }
         });
@@ -493,7 +503,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @description 重启 OneBot 实现
      */
     public setRestart() {
-        return this.send({
+        return this.send<Lagrange.SetRestartResponse>({
             action: 'set_restart',
             params: {  }
         });
@@ -503,7 +513,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @description 清理缓存
      */
     public cleanCache() {
-        return this.send({
+        return this.send<Lagrange.CleanCacheResponse>({
             action: 'clean_cache',
             params: {  }
         });

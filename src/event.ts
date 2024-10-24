@@ -37,12 +37,20 @@ class Pipe {
     
     // 处理 notice 类型的 post_type 消息
     public noticePipe(message: Lagrange.NoticePostType) {
-    
+        switch (message.notice_type) {
+            case 'group_increase':
+                lagrangeMapper.resolveGroupIncrease(new LagrangeContext(message));
+                break;
+
+            case 'offline_file':
+                lagrangeMapper.resolveOfflineFile(new LagrangeContext(message));
+                break;
+        }
     }
     
     // 处理 request 类型的 post_type 消息
     public requestPipe(message: Lagrange.RequestPostType) {
-    
+        lagrangeMapper.resolveRequest(new LagrangeContext(message));
     }
 }
 
