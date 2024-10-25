@@ -7,7 +7,8 @@
         "experimentalDecorators": true,
         "declaration": true,
         "declarationDir": "dist",
-        "typeRoots": ["./types"]
+        "typeRoots": ["./types"],
+        "removeComments": false
     },
     "include": [
         "src/**/*"

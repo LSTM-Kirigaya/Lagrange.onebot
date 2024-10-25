@@ -12,6 +12,10 @@ interface LaunchOption {
     qq: number
 }
 
+interface GetRawTextConfig {
+    delimiter: string
+}
+
 export class LagrangeContext<T extends Lagrange.Message> {
     public ws: WebSocket | undefined;
     public fin: boolean;
@@ -100,6 +104,28 @@ export class LagrangeContext<T extends Lagrange.Message> {
         });
     }
 
+    /**
+     * @description 获取消息的纯文本信息，如果有多段消息，默认按照回车进行分割
+     * @param config
+     * @returns 
+     */
+    public getRawText(config?: GetRawTextConfig): string {
+        const msg = this.message;
+        config = config || { delimiter: '\n' };
+        if (msg['message'] instanceof Array) {
+            const text: string[] = [];
+            for (const message of msg['message']) {
+                if (message['type'] === 'text' && message['data']) {
+                    const messageString = message['data']['text'] as string;
+                    text.push(messageString);
+                }
+            }
+            return text.join(config.delimiter);
+        } else {
+            return '';
+        }
+    }
+
 
     /**
      * @description 根据回复者回消息，如果是群聊，则在群聊中回复；如果是私聊，直接回复
@@ -114,6 +140,14 @@ export class LagrangeContext<T extends Lagrange.Message> {
             } else if (msg.message_type === 'private') {
                 return this.sendPrivateMsg(msg.user_id, message);
             }
+        } else if (msg.post_type === 'notice') {
+            if (msg['group_id']) {
+                return this.sendGroupMsg(msg['group_id'], message);
+            } else if (msg['user_id']) {
+                return this.sendPrivateMsg(msg['user_id'], message);
+            }
+        } else if (msg.post_type === 'request') {
+            logger.warning('当前消息类型为 [request], 我们强烈推荐你不要调用 sendMessage 方法，而使用 sendGroupMsg 或者 sendPrivateMsg. 此处的 sendMessage 将不会执行');
         }
     }
 
