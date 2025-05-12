@@ -1,6 +1,6 @@
 {
     "name": "lagrange.onebot",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "author": {
         "name": "锦恢",
         "email": "1193466151@qq.com"
@@ -23,13 +23,15 @@
     },
     "dependencies": {
         "@ptkdev/logger": "^1.8.0",
-        "@types/node": "^20.12.12",
-        "axios": "^1.7.2",
+        "@types/node": "22.15.16",
+        "axios": "^1.9.0",
+        "node-schedule": "^2.1.1",
         "pm2": "^5.4.0",
         "ws": "^8.17.0",
         "yaml": "^2.4.2"
     },
     "devDependencies": {
+        "@types/node-schedule": "^2.1.7",
         "@types/ws": "^8.5.10",
         "serve": "^14.2.3",
         "ts-node": "^10.9.2",

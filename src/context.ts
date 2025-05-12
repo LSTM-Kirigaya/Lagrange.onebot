@@ -2,6 +2,7 @@ import WebSocket from 'ws';
 
 import { pipe, onMessage, onClose } from './event';
 import { logger } from './utils';
+import { scheduleJob } from 'node-schedule';
 
 import type * as Lagrange from './type';
 
@@ -555,6 +556,12 @@ export class LagrangeContext<T extends Lagrange.Message> {
 }
 
 type CycleCb = (c: LagrangeContext<Lagrange.Message>) => void;
+export type CycleEvent = 'mounted' | 'unmounted';
+
+interface timeScheduleCb {
+    cb: CycleCb;
+    spec: string;
+}
 
 export class LagrangeServer {
     public wsServer: WebSocket.Server | undefined;
@@ -562,14 +569,19 @@ export class LagrangeServer {
     public config: LaunchOption | undefined;
     public qq: number | undefined;
 
-    private cycleCbMap: Map<'mounted' | 'unmounted', CycleCb | undefined>;
+    private cycleCbMap: Map<CycleEvent, CycleCb[]>;
+    private timeScheduleCbMap: timeScheduleCb[];
 
     constructor() {
         this.wsServer = undefined;
         this.ws = undefined;
         this.qq = undefined;
         this.config = undefined;
-        this.cycleCbMap = new Map<'mounted' | 'unmounted', CycleCb | undefined>();
+        this.cycleCbMap = new Map<CycleEvent, CycleCb[]>();
+
+        this.cycleCbMap.set('mounted', []);
+        this.cycleCbMap.set('unmounted', []);
+        this.timeScheduleCbMap = [];
     }
 
     private connect(wsServer: WebSocket.Server): Promise<WebSocket> {
@@ -600,11 +612,18 @@ export class LagrangeServer {
         const cycleCbMap = this.cycleCbMap;
 
         // mounted 周期
-        cycleCbMap.get('mounted')?.call(this, new LagrangeContext({ post_type: 'meta_event' }));
+        cycleCbMap.get('mounted').forEach(cb => cb.call(this, new LagrangeContext({ post_type:'meta_event' })));
+
+        // 执行注册的定时器
+        this.timeScheduleCbMap.forEach(({ cb, spec }) => {
+            scheduleJob(spec, () => {
+                cb.call(this, new LagrangeContext({ post_type:'meta_event' }));
+            });
+        });
 
         process.on('SIGINT', () => {
             // unmounted 周期
-            cycleCbMap.get('unmounted')?.call(this, new LagrangeContext({ post_type: 'meta_event' }));
+            cycleCbMap.get('unmounted').forEach(cb => cb.call(this, new LagrangeContext({ post_type:'meta_event' })));
 
             ws.close();
             wsServer.close();
@@ -612,17 +631,29 @@ export class LagrangeServer {
     }
 
     /**
+     * @description 添加定时器
+     * @param spec 描述定时器的字符串，比如 '0 31 16 * * *' 表示每天下午 16:31 执行
+     * @param cb 注入 onebot 上下文 的回调函数
+     */
+    public addTimeSchedule(spec: string, cb: CycleCb) {
+        this.timeScheduleCbMap.push({
+            cb,
+            spec
+        });
+    }
+
+    /**
      * @description 注册客户端初始化完成后的行为
      */
     public onMounted(cb: CycleCb) {
-        this.cycleCbMap.set('mounted', cb);
+        this.cycleCbMap.get('mounted').push(cb);
     }
 
     /**
      * @description 注册客户端退出时的行为
      */
     public onUnmounted(cb: CycleCb) {
-        this.cycleCbMap.set('unmounted', cb);
+        this.cycleCbMap.get('unmounted').push(cb);
     }
 }
 

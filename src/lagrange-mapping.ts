@@ -27,7 +27,8 @@ interface MessageInvokerStorage<T extends MessagePostInvoker> {
 }
 
 interface OnGroupConfig {
-    at: boolean
+    at?: boolean
+    onlyAdmin?: boolean
 }
 
 interface OnFileReceiveConfig {
@@ -74,7 +75,7 @@ class LagrangeMapper {
         return this._addFriendOrGroupStorage;
     }
 
-    public resolvePrivateUser(c: LagrangeContext<Lagrange.PrivateMessage>) {
+    public async resolvePrivateUser(c: LagrangeContext<Lagrange.PrivateMessage>) {
         const user_id = c.message.user_id;
         const userStorage = this._privateUserStorage.get(user_id);
         if (userStorage) {
@@ -82,28 +83,46 @@ class LagrangeMapper {
         }
     }
 
-    public resolveGroup(c: LagrangeContext<Lagrange.GroupMessage>) {
+    public async resolveGroup(c: LagrangeContext<Lagrange.GroupMessage>) {
         const group_id = c.message.group_id;
         const groupStorage = this._groupStorage.get(group_id);
         if (groupStorage) {
-            const config = groupStorage.config || {};
-            config.at = config.at || false;
+
+            const {
+                at = false,
+                onlyAdmin = false
+            } = groupStorage.config || {};
+
             const msg = c.message;
             const firstSegment = msg.message[0];
             const robotQQ = c.qq + '';
-            if (config.at && firstSegment.type === 'at' && firstSegment.data.qq === robotQQ) {
-                msg.message = msg.message.slice(1);
-                msg.raw_message = msg.raw_message.substring(11 + robotQQ.length);
-                groupStorage.invoker(c);
+
+            // 添加守卫：如果不是 admin，则退出
+            if (onlyAdmin) {
+                const info = await c.getGroupMemberInfo(group_id, c.qq, true);        
+                const role = info['data'].role;
+                if (role !== 'owner' && role !== 'admin') {
+                    return;
+                }
             }
-            if (!config.at) {
-                groupStorage.invoker(c);
+
+            // 添加守卫：如果不是 at 机器人，则退出
+            const validAt = Boolean(firstSegment.type === 'at' && firstSegment.data.qq === robotQQ);
+            if (at) {
+                if (validAt) {
+                    msg.message = msg.message.slice(1);
+                    msg.raw_message = msg.raw_message.substring(11 + robotQQ.length);
+                } else {
+                    return;
+                }
             }
+
+            groupStorage.invoker(c);
         }
     }
 
     // 有新人入群
-    public resolveGroupIncrease(c: LagrangeContext<Lagrange.ApproveMessage>) {
+    public async resolveGroupIncrease(c: LagrangeContext<Lagrange.ApproveMessage>) {
         const group_id = c.message.group_id;
         const storage = this.groupIncreaseStorage.get(group_id);
         if (storage) {
@@ -112,14 +131,14 @@ class LagrangeMapper {
     }
 
     // 有人发送离线文件
-    public resolveOfflineFile(c: LagrangeContext<Lagrange.FileMessage>) {
+    public async resolveOfflineFile(c: LagrangeContext<Lagrange.FileMessage>) {
         for (const storage of this.fileReceiveStorage) {
             storage.invoker(c);
         }
     }
     
     // 加群或者好友的信号
-    public resolveRequest(c: LagrangeContext<Lagrange.RequestPostType>) {
+    public async resolveRequest(c: LagrangeContext<Lagrange.RequestPostType>) {
         for (const storage of this.addFriendOrGroupStorage) {
             storage.invoker(c);
         }
@@ -148,7 +167,7 @@ class LagrangeMapper {
      * @param config 响应配置
      * @returns 
      */
-    public onGroup(group_id: number, config?: OnGroupConfig) {
+    public onGroup(group_id: number, config: OnGroupConfig = {}) {
         const _this = this;
         return function(target: any, propertyKey: string, descriptor: MapperDescriptor<GroupUserInvoker>) {
             if (_this.groupStorage.has(group_id)) {
