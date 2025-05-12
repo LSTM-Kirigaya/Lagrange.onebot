@@ -856,3 +856,9 @@ export interface SetRestartResponse {
 export interface CleanCacheResponse {
 }
 
+export interface UpdateFileResponse {
+    status: 'ok' | 'failed'
+    retcode: number
+    data: any
+    echo: any
+}

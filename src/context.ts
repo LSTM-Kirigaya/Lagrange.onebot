@@ -554,6 +554,33 @@ export class LagrangeContext<T extends Lagrange.Message> {
             params: {  }
         });
     }
+
+    /**
+     * @description 上传文件给个人
+     * @param user_id 
+     * @param file 
+     * @param name 
+     * @returns 
+     */
+    public updatePrivateFile(user_id: number, file: string, name: string) {
+        return this.send<Lagrange.UpdateFileResponse>({
+            action: 'upload_private_file',
+            params: { user_id, file, name }
+        });
+    }
+
+    /**
+     * @description 上传群文件
+     * @param group_id 群号
+     * @param file 文件绝对路径
+     * @param name 文件名称
+     */
+    public uploadGroupFile(group_id: number, user_id: number, file: string, name: string) {
+        return this.send<Lagrange.UpdateFileResponse>({
+            action: 'upload_group_file',
+            params: { group_id, user_id, file, name }
+        });
+    }
 }
 
 type CycleCb = (c: LagrangeContext<Lagrange.Message>) => void;
