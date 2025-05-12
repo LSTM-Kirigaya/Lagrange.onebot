@@ -856,9 +856,9 @@ export interface SetRestartResponse {
 export interface CleanCacheResponse {
 }
 
-export interface UpdateFileResponse {
-    status: 'ok' | 'failed'
-    retcode: number
-    data: any
-    echo: any
+export interface NoticeMessage {
+    notice_id: string,
+    sender_id: number,
+    publish_time: number,
+    message: any
 }

@@ -563,7 +563,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @returns 
      */
     public updatePrivateFile(user_id: number, file: string, name: string) {
-        return this.send<Lagrange.UpdateFileResponse>({
+        return this.send<Lagrange.CommonResponse<null>>({
             action: 'upload_private_file',
             params: { user_id, file, name }
         });
@@ -576,9 +576,36 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param name 文件名称
      */
     public uploadGroupFile(group_id: number, user_id: number, file: string, name: string) {
-        return this.send<Lagrange.UpdateFileResponse>({
+        return this.send<Lagrange.CommonResponse<null>>({
             action: 'upload_group_file',
             params: { group_id, user_id, file, name }
+        });
+    }
+
+    /**
+     * @description 发送群公告
+     * @param group_id 
+     * @param notice_type 
+     * @param sub_type 
+     * @param file 
+     * @param user_id 
+     */
+    public sendGroupNotice(group_id: number, content: string) {
+        return this.send<Lagrange.CommonResponse<null>>({
+            action: '_send_group_notice',
+            params: { group_id, content }
+        });
+    }
+
+    /**
+     * @description 获取群公告
+     * @param group_id 
+     * @returns 
+     */
+    public getGroupNotice(group_id: number) {
+        return this.send<Lagrange.CommonResponse<Lagrange.NoticeMessage>>({
+            action: '_get_group_notice',
+            params: { group_id }
         });
     }
 }
