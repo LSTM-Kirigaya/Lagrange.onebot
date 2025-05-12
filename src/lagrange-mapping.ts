@@ -111,7 +111,7 @@ class LagrangeMapper {
 
             // 添加守卫：如果不是 admin，则退出
             if (onlyAdmin) {
-                const info = await c.getGroupMemberInfo(group_id, c.qq, true);        
+                const info = await c.getGroupMemberInfo(group_id, c.message.user_id, true);        
                 const role = info['data'].role;
                 if (role !== 'owner' && role !== 'admin') {
                     return;
