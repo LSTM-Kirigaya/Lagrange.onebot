@@ -2,6 +2,7 @@ import WebSocket from 'ws';
 
 import { pipe, onMessage, onClose } from './event';
 import { logger } from './utils';
+import lagrangeMapper from './lagrange-mapping';
 import { scheduleJob } from 'node-schedule';
 
 import type * as Lagrange from './type';
@@ -618,6 +619,13 @@ export class LagrangeServer {
         this.timeScheduleCbMap.forEach(({ cb, spec }) => {
             scheduleJob(spec, () => {
                 cb.call(this, new LagrangeContext({ post_type:'meta_event' }));
+            });
+        });
+
+        // 执行 mapper 中注册的定时器
+        lagrangeMapper.getCreateTimeSchedule.forEach(({ invoker, config }) => {
+            scheduleJob(config.spec, () => {
+                invoker.call(this, new LagrangeContext({ post_type:'meta_event' }));
             });
         });
 

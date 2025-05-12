@@ -8,8 +8,14 @@ export type GroupUserInvoker = MessageInvoker<Lagrange.GroupMessage>;
 export type FileReceiveInvoker = MessageInvoker<Lagrange.FileMessage>;
 export type GroupIncreaseInvoker = MessageInvoker<Lagrange.ApproveMessage>;
 export type AddFriendOrGroupInvoker = MessageInvoker<Lagrange.AddFriendOrGroupMessage>;
+export type TimeScheduleInvoker = MessageInvoker<Lagrange.Message>;
 
-export type MessagePostInvoker = PrivateUserInvoker | GroupUserInvoker | FileReceiveInvoker | GroupIncreaseInvoker | AddFriendOrGroupInvoker;
+export type MessagePostInvoker = PrivateUserInvoker | 
+                                 GroupUserInvoker | 
+                                 FileReceiveInvoker | 
+                                 GroupIncreaseInvoker | 
+                                 AddFriendOrGroupInvoker |
+                                 TimeScheduleInvoker;
 
 
 export interface MapperDescriptor<T extends MessagePostInvoker> {
@@ -46,6 +52,7 @@ class LagrangeMapper {
     private _fileReceiveStorage: Set<MessageInvokerStorage<FileReceiveInvoker>>;
     private _groupIncreaseStorage: Map<number, MessageInvokerStorage<GroupIncreaseInvoker>>;
     private _addFriendOrGroupStorage: Set<MessageInvokerStorage<AddFriendOrGroupInvoker>>;
+    private _createTimeSchedule: Set<MessageInvokerStorage<TimeScheduleInvoker>>;
 
     constructor() {
         this._privateUserStorage = new Map<number, MessageInvokerStorage<PrivateUserInvoker>>();
@@ -53,6 +60,7 @@ class LagrangeMapper {
         this._fileReceiveStorage = new Set<MessageInvokerStorage<FileReceiveInvoker>>();
         this._groupIncreaseStorage = new Map<number, MessageInvokerStorage<GroupIncreaseInvoker>>();
         this._addFriendOrGroupStorage = new Set<MessageInvokerStorage<AddFriendOrGroupInvoker>>();
+        this._createTimeSchedule = new Set<MessageInvokerStorage<TimeScheduleInvoker>>();
     }
 
     get privateUserStorage() {
@@ -73,6 +81,10 @@ class LagrangeMapper {
 
     get addFriendOrGroupStorage() {
         return this._addFriendOrGroupStorage;
+    }
+
+    get getCreateTimeSchedule() {
+        return this._createTimeSchedule;
     }
 
     public async resolvePrivateUser(c: LagrangeContext<Lagrange.PrivateMessage>) {
@@ -222,6 +234,14 @@ class LagrangeMapper {
             }
             const invoker = descriptor.value;
             _this.addFriendOrGroupStorage.add({ invoker });
+        }
+    }
+
+    public createTimeSchedule(spec: string) {
+        const _this = this;
+        return function(target: any, propertyKey: string, descriptor: MapperDescriptor<TimeScheduleInvoker>) {
+            const invoker = descriptor.value;
+            _this.getCreateTimeSchedule.add({ invoker, config: { spec } });
         }
     }
 }
