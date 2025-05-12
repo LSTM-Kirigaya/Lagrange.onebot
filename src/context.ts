@@ -575,10 +575,10 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param file 文件绝对路径
      * @param name 文件名称
      */
-    public uploadGroupFile(group_id: number, user_id: number, file: string, name: string) {
+    public uploadGroupFile(group_id: number, file: string, name: string) {
         return this.send<Lagrange.CommonResponse<null>>({
             action: 'upload_group_file',
-            params: { group_id, user_id, file, name }
+            params: { group_id, file, name }
         });
     }
 
