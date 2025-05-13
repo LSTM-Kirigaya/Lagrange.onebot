@@ -1,4 +1,4 @@
-import { logger } from './utils';
+import { logger, SizedQueue } from './utils';
 import type * as Lagrange from './type';
 import type { LagrangeContext } from './context';
 
@@ -10,12 +10,12 @@ export type GroupIncreaseInvoker = MessageInvoker<Lagrange.ApproveMessage>;
 export type AddFriendOrGroupInvoker = MessageInvoker<Lagrange.AddFriendOrGroupMessage>;
 export type TimeScheduleInvoker = MessageInvoker<Lagrange.Message>;
 
-export type MessagePostInvoker = PrivateUserInvoker | 
-                                 GroupUserInvoker | 
-                                 FileReceiveInvoker | 
-                                 GroupIncreaseInvoker | 
-                                 AddFriendOrGroupInvoker |
-                                 TimeScheduleInvoker;
+export type MessagePostInvoker = PrivateUserInvoker |
+    GroupUserInvoker |
+    FileReceiveInvoker |
+    GroupIncreaseInvoker |
+    AddFriendOrGroupInvoker |
+    TimeScheduleInvoker;
 
 
 export interface MapperDescriptor<T extends MessagePostInvoker> {
@@ -35,6 +35,11 @@ interface MessageInvokerStorage<T extends MessagePostInvoker> {
 interface OnGroupConfig {
     at?: boolean
     onlyAdmin?: boolean
+    memorySize?: number
+}
+
+interface onPrivateUserConfig {
+    memorySize?: number
 }
 
 interface OnFileReceiveConfig {
@@ -54,6 +59,8 @@ class LagrangeMapper {
     private _addFriendOrGroupStorage: Set<MessageInvokerStorage<AddFriendOrGroupInvoker>>;
     private _createTimeSchedule: Set<MessageInvokerStorage<TimeScheduleInvoker>>;
 
+    private _memoryStorage: Map<number, SizedQueue<Lagrange.Message>>;
+
     constructor() {
         this._privateUserStorage = new Map<number, MessageInvokerStorage<PrivateUserInvoker>>();
         this._groupStorage = new Map<number, MessageInvokerStorage<GroupUserInvoker>>();
@@ -61,6 +68,8 @@ class LagrangeMapper {
         this._groupIncreaseStorage = new Map<number, MessageInvokerStorage<GroupIncreaseInvoker>>();
         this._addFriendOrGroupStorage = new Set<MessageInvokerStorage<AddFriendOrGroupInvoker>>();
         this._createTimeSchedule = new Set<MessageInvokerStorage<TimeScheduleInvoker>>();
+
+        this._memoryStorage = new Map<number, SizedQueue<Lagrange.Message>>();
     }
 
     get privateUserStorage() {
@@ -70,7 +79,7 @@ class LagrangeMapper {
     get groupStorage() {
         return this._groupStorage;
     }
-    
+
     get fileReceiveStorage() {
         return this._fileReceiveStorage;
     }
@@ -87,11 +96,30 @@ class LagrangeMapper {
         return this._createTimeSchedule;
     }
 
+    get memoryStorage() {
+        return this._memoryStorage;
+    }
+
     public async resolvePrivateUser(c: LagrangeContext<Lagrange.PrivateMessage>) {
         const user_id = c.message.user_id;
         const userStorage = this._privateUserStorage.get(user_id);
         if (userStorage) {
-            userStorage.invoker(c);
+
+            const {
+                memorySize = 0
+            } = userStorage.config || {};
+
+            await userStorage.invoker(c);
+
+            // 添加记忆功能
+            if (memorySize > 0) {
+                if (!this.memoryStorage.has(user_id)) {
+                    this.memoryStorage.set(user_id, new SizedQueue<Lagrange.Message>(memorySize));
+                }
+
+                const queue = this.memoryStorage.get(user_id);
+                queue.enqueue(c.message);
+            }
         }
     }
 
@@ -102,7 +130,8 @@ class LagrangeMapper {
 
             const {
                 at = false,
-                onlyAdmin = false
+                onlyAdmin = false,
+                memorySize = 0
             } = groupStorage.config || {};
 
             const msg = c.message;
@@ -111,7 +140,7 @@ class LagrangeMapper {
 
             // 添加守卫：如果不是 admin，则退出
             if (onlyAdmin) {
-                const info = await c.getGroupMemberInfo(group_id, c.message.user_id, true);        
+                const info = await c.getGroupMemberInfo(group_id, c.message.user_id, true);
                 const role = info['data'].role;
                 if (role !== 'owner' && role !== 'admin') {
                     return;
@@ -129,8 +158,40 @@ class LagrangeMapper {
                 }
             }
 
-            groupStorage.invoker(c);
+            await groupStorage.invoker(c);
+
+            // 添加记忆功能
+            if (memorySize > 0) {
+                if (!this.memoryStorage.has(group_id)) {
+                    this.memoryStorage.set(group_id, new SizedQueue<Lagrange.Message>(memorySize));
+                }
+
+                const queue = this.memoryStorage.get(group_id);
+                queue.enqueue(c.message);
+            }
         }
+    }
+
+    /**
+     * @description
+     * @param c 
+     */
+    public getMemoryStorage<T extends Lagrange.Message>(c: LagrangeContext<T>): SizedQueue<T> | undefined {
+
+        if (c.message.post_type === 'message') {
+            if (c.message.message_type === 'group') {
+                const storage = this.memoryStorage.get(c.message.group_id);
+                return storage as SizedQueue<T>;
+            }
+
+            if (c.message.message_type === 'private') {
+                const storage = this.memoryStorage.get(c.message.user_id);
+                return storage as SizedQueue<T>;
+            }
+
+            return undefined;
+        }
+
     }
 
     // 有新人入群
@@ -148,28 +209,28 @@ class LagrangeMapper {
             storage.invoker(c);
         }
     }
-    
+
     // 加群或者好友的信号
     public async resolveRequest(c: LagrangeContext<Lagrange.RequestPostType>) {
         for (const storage of this.addFriendOrGroupStorage) {
             storage.invoker(c);
         }
     }
-    
+
     /**
      * @description 私聊用户响应函数的注册函数
      * @param user_id 私聊用户的 QQ 号码
      * @returns 
      */
-    public onPrivateUser(user_id: number) {
+    public onPrivateUser(user_id: number, config: onPrivateUserConfig = {}) {
         const _this = this;
-        logger.warning    
-        return function(target: any, propertyKey: string, descriptor: MapperDescriptor<PrivateUserInvoker>) {
+        logger.warning
+        return function (target: any, propertyKey: string, descriptor: MapperDescriptor<PrivateUserInvoker>) {
             if (_this._privateUserStorage.has(user_id)) {
                 logger.warning(`${propertyKey} -> 用户 ${user_id} 已经被注册过了，该操作将覆盖原本的！`);
             }
             const invoker = descriptor.value;
-            _this._privateUserStorage.set(user_id, { invoker });
+            _this._privateUserStorage.set(user_id, { invoker, config });
         }
     }
 
@@ -181,7 +242,7 @@ class LagrangeMapper {
      */
     public onGroup(group_id: number, config: OnGroupConfig = {}) {
         const _this = this;
-        return function(target: any, propertyKey: string, descriptor: MapperDescriptor<GroupUserInvoker>) {
+        return function (target: any, propertyKey: string, descriptor: MapperDescriptor<GroupUserInvoker>) {
             if (_this.groupStorage.has(group_id)) {
                 logger.warning(`${propertyKey} -> 群 ${group_id} 已经被注册过了，该操作将覆盖原本的！`);
             }
@@ -197,7 +258,7 @@ class LagrangeMapper {
     public onFileReceive(config?: OnFileReceiveConfig) {
         const _this = this;
         config = config || { ignoreWarning: false };
-        return function(target: any, propertyKey: string, descriptor: MapperDescriptor<FileReceiveInvoker>) {
+        return function (target: any, propertyKey: string, descriptor: MapperDescriptor<FileReceiveInvoker>) {
             if (_this.fileReceiveStorage.size > 0 && !config.ignoreWarning) {
                 logger.warning(`${propertyKey} -> 文件接受管线已经注册，如果你真的希望同时调用多个 onFileReceive，考虑使用 @onFileReceive({ ignoreWarning: true })`);
             }
@@ -213,7 +274,7 @@ class LagrangeMapper {
      */
     public onGroupIncrease(group_id: number) {
         const _this = this;
-        return function(target: any, propertyKey: string, descriptor: MapperDescriptor<GroupIncreaseInvoker>) {
+        return function (target: any, propertyKey: string, descriptor: MapperDescriptor<GroupIncreaseInvoker>) {
             if (_this.groupIncreaseStorage.has(group_id)) {
                 logger.warning(`${propertyKey} -> 群 ${group_id} 已经被注册过了，该操作将覆盖原本的！`);
             }
@@ -228,7 +289,7 @@ class LagrangeMapper {
     public onAddFriendOrGroup(config?: OnAddFriendOrGroupConfig) {
         const _this = this;
         config = config || { ignoreWarning: false };
-        return function(target: any, propertyKey: string, descriptor: MapperDescriptor<AddFriendOrGroupInvoker>) {
+        return function (target: any, propertyKey: string, descriptor: MapperDescriptor<AddFriendOrGroupInvoker>) {
             if (_this.addFriendOrGroupStorage.size > 0 && !config.ignoreWarning) {
                 logger.warning(`${propertyKey} -> 加好友/加群接受管线已经注册，如果你真的希望同时调用多个 onAddFriendOrGroup，考虑使用 @onAddFriendOrGroup({ ignoreWarning: true })`);
             }
@@ -239,7 +300,7 @@ class LagrangeMapper {
 
     public createTimeSchedule(spec: string) {
         const _this = this;
-        return function(target: any, propertyKey: string, descriptor: MapperDescriptor<TimeScheduleInvoker>) {
+        return function (target: any, propertyKey: string, descriptor: MapperDescriptor<TimeScheduleInvoker>) {
             const invoker = descriptor.value;
             _this.getCreateTimeSchedule.add({ invoker, config: { spec } });
         }
