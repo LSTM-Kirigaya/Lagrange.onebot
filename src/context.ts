@@ -7,12 +7,25 @@ import { scheduleJob } from 'node-schedule';
 
 import type * as Lagrange from './type';
 
-interface LaunchOption {
+interface CommonLaunchOption {
+    qq: number,
+    access_token?: string
+}
+
+interface ForwardWebsocketLaunchOption extends CommonLaunchOption {
+    type: "forward-websocket",
+    host: string,
+    port: number
+}
+
+interface BackwardWebsocketLaunchOption extends CommonLaunchOption {
+    type: "backward-websocket",
     host: string,
     port: number,
-    path: string,
-    qq: number
+    path: string
 }
+
+type LaunchOption = ForwardWebsocketLaunchOption | BackwardWebsocketLaunchOption;
 
 interface GetRawTextConfig {
     delimiter: string
@@ -44,8 +57,9 @@ export class LagrangeContext<T extends Lagrange.Message> {
 
             if (!fin) {                
                 ws.send(JSON.stringify(apiJSON), (err: Error) => {
+                    console.log(err)
                     if (err) {
-                        logger.warning('ws 发送消息错误');
+                        logger.warning('ws 发送消息错误, 是否在LaunchOption中缺少了AccessToken参数?');
                         resolve(err);
                     }
                 });
@@ -639,29 +653,61 @@ export class LagrangeServer {
         this.timeScheduleCbMap = [];
     }
 
-    private connect(wsServer: WebSocket.Server): Promise<WebSocket> {
+    private serverConnect(wsServer: WebSocket.Server): Promise<WebSocket> {
         return new Promise<WebSocket>(resolve => {
+            if (!wsServer) {
+                throw new Error("不会触发的 Error.");
+            }
+
             wsServer.on('connection', (ws: WebSocket) => {
                 resolve(ws);
             });
         });
     }
 
+    private clientConnect(ws: WebSocket): Promise<void> {
+        return new Promise(resolve => {
+            if (!ws) {
+                throw new Error("不会触发的 Error.");
+            }
+
+            ws.on('open', (ws: WebSocket) => {
+                resolve();
+            });
+        });
+    }
+
     public async run(config: LaunchOption): Promise<void> {
         this.config = config;
-        const wsServer = new WebSocket.Server(config);
-        logger.info('websocket 服务器创建完成');
-        const ws = await this.connect(wsServer);
-        this.wsServer = wsServer;
-        this.ws = ws;
+
+        switch (config.type) {
+            case "forward-websocket":
+                this.ws = new WebSocket(`ws://${config.host}:${config.port}`,{headers:{
+                    Authorization: `Bearer ${config.access_token}`
+                }});
+                await this.clientConnect(this.ws);
+                logger.info('websocket 服务器成功链连接');
+                break;
+            case 'backward-websocket':
+                const wsServer = new WebSocket.Server(config);
+                const ws = await this.serverConnect(wsServer);
+
+                this.wsServer = wsServer;
+                this.ws = ws;    
+                logger.info('websocket 服务器创建完成');
+                break;
+            default:
+                throw new Error("Unknown connection type! ");
+        }
+
         this.qq = config.qq;
 
         logger.info('完成 websocket 连接，启动参数如下');
         console.table(config);
         pipe.registerServer(this);
 
-        ws.on('message', onMessage);
-        ws.on('close', onClose);
+        this.ws.on('message', onMessage);
+        this.ws.on('close', onClose);
         logger.info('消息处理管线注册完成');
 
         const cycleCbMap = this.cycleCbMap;
@@ -687,8 +733,8 @@ export class LagrangeServer {
             // unmounted 周期
             cycleCbMap.get('unmounted').forEach(cb => cb.call(this, new LagrangeContext({ post_type:'meta_event' })));
 
-            ws.close();
-            wsServer.close();
+            this.ws.close();
+            this.wsServer?.close();
         });
     }
 
