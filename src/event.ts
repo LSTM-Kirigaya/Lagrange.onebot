@@ -70,5 +70,5 @@ export function onMessage(event: Buffer) {
 
 
 export function onClose() {
-    logger.info('lagrangeServer 服务器成功关闭')
+    logger.info('成功与 lagrange 断开连接')
 }
