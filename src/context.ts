@@ -489,24 +489,10 @@ export class LagrangeContext<T extends Lagrange.Message> {
     }
 
     /**
-     * @description 获取语音
+     * @description 获取用户头像的链接
      */
-    public getRecord() {
-        return this.send<Lagrange.GetRecordResponse>({
-            action: 'get_record',
-            params: {  }
-        });
-    }
-
-    /**
-     * @description 获取图片
-     * @param file 收到的图片文件名（消息段的 file 参数），如 6B4DE3DFD1BD271E3297859D41C530F5.jpg
-     */
-    public getImage(file: string) {
-        return this.send<Lagrange.GetImageResponse>({
-            action: 'get_image',
-            params: { file }
-        });
+    public getUserAvatarUrl(user_id: number) {
+        return `https://q1.qlogo.cn/g?b=qq&nk=${user_id}&s=640`
     }
 
     /**
