@@ -8,9 +8,11 @@
 
 
 
-# Lagrange.onebot
+# Lagrange.onebot TS
 
-基于 Lagrange.Core 实现的 NTQQ 接入框架。
+基于 Lagrange.Core 实现的 NTQQ 接入框架。Typescript 版本。
+
+文档请看这里：[Lagrange.onebot TS 官方文档](https://document.kirigaya.cn/blogs/lagrange.onebot/main.html)
 
 > 本项目由于使用了装饰器特性，所以目前只支持使用 typescript 进行开发。
 
@@ -39,7 +41,7 @@
 
 ### 启动拉格朗日服务器
 
-[Lagrange文档 - 快速部署 & 配置](https://lagrangedev.github.io/Lagrange.Doc/Lagrange.OneBot/Config/)
+[Lagrange文档 - 快速部署 & 配置](https://lagrangedev.github.io/Lagrange.Doc/v1/Lagrange.OneBot/Config/)
 
 请使用 `screen`, `tmux` 或者 `pm2` 工具将拉格朗日挂在后台。
 
@@ -48,22 +50,18 @@
 
 ### 安装与配置本项目
 
-在你的项目文件夹中
-```bash
-# npm
-npm install lagrange.onebot
+新建一个 ts 项目，然后在你的项目文件夹中安装 `lagrange.onebot`
 
-# yarn
-yarn add lagrange.onebot
+```bash
+npm install lagrange.onebot
 ```
+
 修改 `tsconfig.json`，开启装饰器
 
 ```json
 {
     "compilerOptions": {
-        ...
         "experimentalDecorators": true,
-        ...
     }
 }
 ```
