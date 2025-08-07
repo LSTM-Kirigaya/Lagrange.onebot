@@ -1,8 +1,8 @@
 import WebSocket from 'ws';
 
 import { pipe, onMessage, onClose } from './event';
-import { logger } from './utils';
-import lagrangeMapper from './lagrange-mapping';
+import { getGroupMessageImagePath, getPrivateMessageImagePath, getUserAvatarPath, logger } from './utils';
+import lagrangeMapper from './mapper';
 import { scheduleJob } from 'node-schedule';
 
 import type * as Lagrange from './type';
@@ -496,6 +496,14 @@ export class LagrangeContext<T extends Lagrange.Message> {
     }
 
     /**
+     * @description 下载用户头像并返回绝对路径
+     */
+    public getUserAvatar(user_id: number, no_cache: boolean = false) {
+        return getUserAvatarPath(user_id, no_cache);
+    }
+
+
+    /**
      * @description 检查是否可以发送图片
      */
     public canSendImage() {
@@ -607,6 +615,23 @@ export class LagrangeContext<T extends Lagrange.Message> {
             action: '_get_group_notice',
             params: { group_id }
         });
+    }
+
+    /**
+     * @description 根据 fileName 获取图片下载链接
+     * @example
+     * getImagePath('20DE067974E03933E507779A8130D7CB.jpg') -> "/path/to/20DE067974E03933E507779A8130D7CB.jpg"
+     */
+    public getImagePath(fileName: string, subType: number) {
+        if (this.message.post_type === 'message') {
+            if (this.message.message_type === 'group') {
+                return getGroupMessageImagePath(this.message.group_id, subType, fileName);
+            } else {
+                return getPrivateMessageImagePath(this.message.user_id, subType, fileName);
+            }
+        }
+
+        return undefined;
     }
 }
 

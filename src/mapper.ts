@@ -1,4 +1,4 @@
-import { logger, SizedQueue } from './utils';
+import { handleAutoDownloadImage, logger, SizedQueue } from './utils';
 import type * as Lagrange from './type';
 import type { LagrangeContext } from './context';
 
@@ -36,10 +36,12 @@ interface OnGroupConfig {
     at?: boolean
     onlyAdmin?: boolean
     memorySize?: number
+    autoDownloadImage?: boolean
 }
 
 interface onPrivateUserConfig {
     memorySize?: number
+    autoDownloadImage?: boolean
 }
 
 interface OnFileReceiveConfig {
@@ -106,10 +108,16 @@ class LagrangeMapper {
         if (userStorage) {
 
             const {
-                memorySize = 0
+                memorySize = 0,
+                autoDownloadImage = false,
             } = userStorage.config || {};
 
             await userStorage.invoker(c);
+
+            // 如果需要下载图片，则下载
+            if (autoDownloadImage) {
+                handleAutoDownloadImage(c);
+            }
 
             // 添加记忆功能
             if (memorySize > 0) {
@@ -131,12 +139,18 @@ class LagrangeMapper {
             const {
                 at = false,
                 onlyAdmin = false,
-                memorySize = 0
+                memorySize = 0,
+                autoDownloadImage = false
             } = groupStorage.config || {};
 
             const msg = c.message;
             const firstSegment = msg.message[0];
             const robotQQ = c.qq + '';
+
+            // 如果需要下载图片，则下载
+            if (autoDownloadImage) {
+                handleAutoDownloadImage(c);
+            }
 
             // 添加守卫：如果不是 admin，则退出
             if (onlyAdmin) {

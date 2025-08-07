@@ -1,5 +1,5 @@
 import server from './context';
-import mapper from './lagrange-mapping';
+import mapper from './mapper';
 import plugins from './plugins';
 
 import {
@@ -9,7 +9,7 @@ import {
     MessagePostInvoker,
     MapperDescriptor,
     
-} from './lagrange-mapping';
+} from './mapper';
 
 import { LagrangeContext } from './context';
 import { logger } from './utils';

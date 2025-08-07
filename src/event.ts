@@ -1,4 +1,4 @@
-import lagrangeMapper from './lagrange-mapping';
+import lagrangeMapper from './mapper';
 
 import type * as Lagrange from './type';
 import { LagrangeContext, LagrangeServer } from './context';

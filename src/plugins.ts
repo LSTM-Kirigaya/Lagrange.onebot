@@ -2,7 +2,7 @@ import { command, logger } from './utils';
 
 import type * as Lagrange from './type';
 import type { LagrangeContext } from './context';
-import type { MapperDescriptor, MessageInvoker } from './lagrange-mapping';
+import type { MapperDescriptor, MessageInvoker } from './mapper';
 
 type PluginFunction = (c: LagrangeContext<Lagrange.Message>) => Lagrange.Thenable<void>;
 
@@ -56,7 +56,7 @@ const plugins = new Plugins();
 export default plugins;
 
 
-class Impl {
+export class BuildInPlugins {
 
     @plugins.register('echo')
     echo(c: LagrangeContext<Lagrange.Message>) {
@@ -69,6 +69,7 @@ class Impl {
             }
         }
     }
+
 
     @plugins.register('pm')
     async showLog(c: LagrangeContext<Lagrange.Message>) {        

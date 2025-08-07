@@ -59,8 +59,11 @@ export namespace Receive {
         data: {
             file: string,
             url: string,
+            filename: string,
             // 在简略窗口可以看到的信息，对于图片来说，这就是 [图片]
-            summary: string
+            summary: string,
+            // 0 代表 图片，1 代表表情包
+            subType: number
         }
     }
 
