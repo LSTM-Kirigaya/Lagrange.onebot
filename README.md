@@ -75,7 +75,7 @@ npm install lagrange.onebot
 ```typescript
 // main.ts
 import { server } from 'lagrange.onebot';
-import './impl';
+import { TestController } from './test.controller';
 
 // server 刚启动的时候要做的事情
 server.onMounted(c => {
@@ -103,26 +103,24 @@ server.run({
 如果想要自定义对于某个人或者某个群的回答行为，可以通过 `mapper 注解/装饰器` 的方式将您写的业务函数装配进事务管线中， `lagrange.onebot` 会自动去处理这些信息。写法综合了 java 的 `springboot` 和 go 的 `gin` ，对于熟悉后端开发的同学而言，应该非常简单。
 
 ```typescript
-// impl.ts
+// test.controller.ts
 
 import { mapper, LagrangeContext, PrivateMessage } from 'lagrange.onebot';
 
-export class Impl {
-
+export class TestController {
     // 将对于用于 1193466151 的应答函数装配进管线中
-    @mapper.onPrivateUser(1193466151)
+    @mapper.onPrivateUser(1193466151, {
+        memorySize: 50,     // 当前处理管线自动记录最近 50 条的信息， 通过 mapper.getMemoryStorage(c) 来获取队列数据
+        autoDownloadImage: true // 自动下载图片，通过 c.getImagePath(fileName, subType) 获取图片绝对路径
+    })
     async handleJinhui(c: LagrangeContext<PrivateMessage>) {
-        /**
-         * c 是 lagrange.onebot 中最核心的上下文，它包含了所有满足 
-         * onebot v11 协议的 API
-         * c.message 是当前事务的消息
-        */
         const msg = c.message.raw_message;
         const reply = '你刚刚的回答是 ' + msg;
-        c.sendPrivateMsg(c.message.user_id, reply);
+
         // 和下面几种写法完全等价
         // c.sendPrivateMsg(1193466151, reply);
         // c.sendMessage(reply);
+        c.sendPrivateMsg(c.message.user_id, reply);
 
 
         // finishSession 会标记当前事务为“已完成”，此时 c.fin 为 true
