@@ -1,7 +1,7 @@
 import WebSocket from 'ws';
 
 import { pipe, onMessage, onClose } from './event';
-import { getGroupMessageImagePath, getPrivateMessageImagePath, getUserAvatarPath, logger } from './utils';
+import { getGroupMessageImagePath, getPrivateMessageImagePath, getUserAvatarPath, logger } from '../util';
 import lagrangeMapper from './mapper';
 import { scheduleJob } from 'node-schedule';
 

@@ -22,6 +22,7 @@
         "serve": "tsc -w & serve dist"
     },
     "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.18.1",
         "@ptkdev/logger": "^1.8.0",
         "@types/node": "22.15.16",
         "axios": "^1.9.0",

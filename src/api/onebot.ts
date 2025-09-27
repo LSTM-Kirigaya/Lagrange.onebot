@@ -6,7 +6,7 @@
  * - https://github.com/botuniverse/onebot-11/blob/master/communication/ws.md
  */
 
-import * as Lagrange from '../type';
+import * as Lagrange from '../core/type';
 
 /**
  * @description 发送私聊消息

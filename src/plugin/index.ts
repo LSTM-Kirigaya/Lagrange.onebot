@@ -1,8 +1,8 @@
-import { command, logger } from './utils';
+import { command, logger } from '../util';
 
-import type * as Lagrange from './type';
-import type { LagrangeContext } from './context';
-import type { MapperDescriptor, MessageInvoker } from './mapper';
+import type * as Lagrange from '../core/type';
+import type { LagrangeContext } from '../core/context';
+import type { MapperDescriptor, MessageInvoker } from '../core/mapper';
 
 type PluginFunction = (c: LagrangeContext<Lagrange.Message>) => Lagrange.Thenable<void>;
 

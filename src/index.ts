@@ -1,6 +1,6 @@
-import server from './context';
-import mapper from './mapper';
-import plugins from './plugins';
+import server from './core/context';
+import mapper from './core/mapper';
+import plugins from './plugin';
 
 import {
     MessageInvoker,
@@ -8,11 +8,10 @@ import {
     GroupUserInvoker,
     MessagePostInvoker,
     MapperDescriptor,
-    
-} from './mapper';
+} from './core/mapper';
 
-import { LagrangeContext } from './context';
-import { logger } from './utils';
+import { LagrangeContext } from './core/context';
+import { logger } from './util';
 
 import {
     HeartBeatStatus,
@@ -39,7 +38,7 @@ import {
     InvokerContext,
     PrivateUserInvokeContext,
     GroupUserInvokeContext
-} from './type';
+} from './core/type';
 
 
 export {

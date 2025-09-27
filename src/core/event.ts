@@ -2,7 +2,7 @@ import lagrangeMapper from './mapper';
 
 import type * as Lagrange from './type';
 import { LagrangeContext, LagrangeServer } from './context';
-import { logger } from './utils';
+import { logger } from '../util';
 
 class Pipe {
     server: LagrangeServer;

@@ -1,4 +1,4 @@
-import { handleAutoDownloadImage, logger, SizedQueue } from './utils';
+import { handleAutoDownloadImage, logger, SizedQueue } from '../util';
 import type * as Lagrange from './type';
 import type { LagrangeContext } from './context';
 

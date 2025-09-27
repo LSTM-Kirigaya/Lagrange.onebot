@@ -5,8 +5,8 @@ import axios from 'axios';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import * as Lagrange from './type';
-import { LagrangeContext } from './context';
+import * as Lagrange from '../core/type';
+import { LagrangeContext } from '../core/context';
 
 export const logger = new Logger();
 
