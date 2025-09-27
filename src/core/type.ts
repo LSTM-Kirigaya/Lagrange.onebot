@@ -1,6 +1,6 @@
 /**
  * @author 锦恢
- * @email 1193466151@qq.com
+ * @email zhelonghuang@qq.com
  * @description Lagrange.Core 前端接口
  * @comment 详细的接口信息来源
  * - https://github.com/botuniverse/onebot-11/blob/master/api/public.md
@@ -494,6 +494,7 @@ export interface FileMessage {
     post_type: 'notice',
     user_id: number,
     file: MsgFile,
+    group_id?: number,
     notice_type?: 'offline_file',
     time: number,
     self_id: number
@@ -539,7 +540,7 @@ export type Thenable<T> = T | Promise<T>;
 export interface ApiJSON {
     action: string,
     params: {
-        [msg: string]: number | string | Send.Default[] | boolean | object
+        [msg: string]: number | string | Send.Default[] | boolean | object | undefined
     },
     echo?: string
 }

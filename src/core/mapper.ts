@@ -103,6 +103,7 @@ class LagrangeMapper {
     }
 
     public async resolvePrivateUser(c: LagrangeContext<Lagrange.PrivateMessage>) {
+        
         const user_id = c.message.user_id;
         const userStorage = this._privateUserStorage.get(user_id);
         if (userStorage) {
@@ -126,7 +127,7 @@ class LagrangeMapper {
                 }
 
                 const queue = this.memoryStorage.get(user_id);
-                queue.enqueue(c.message);
+                queue?.enqueue(c.message);
             }
         }
     }
@@ -155,6 +156,10 @@ class LagrangeMapper {
             // 添加守卫：如果不是 admin，则退出
             if (onlyAdmin) {
                 const info = await c.getGroupMemberInfo(group_id, c.message.user_id, true);
+                if (info instanceof Error) {
+                    return;
+                }
+
                 const role = info['data'].role;
                 if (role !== 'owner' && role !== 'admin') {
                     return;
@@ -181,7 +186,7 @@ class LagrangeMapper {
                 }
 
                 const queue = this.memoryStorage.get(group_id);
-                queue.enqueue(c.message);
+                queue?.enqueue(c.message);
             }
         }
     }
@@ -238,13 +243,14 @@ class LagrangeMapper {
      */
     public onPrivateUser(user_id: number, config: onPrivateUserConfig = {}) {
         const _this = this;
-        logger.warning
         return function (target: any, propertyKey: string, descriptor: MapperDescriptor<PrivateUserInvoker>) {
             if (_this._privateUserStorage.has(user_id)) {
                 logger.warning(`${propertyKey} -> 用户 ${user_id} 已经被注册过了，该操作将覆盖原本的！`);
             }
             const invoker = descriptor.value;
-            _this._privateUserStorage.set(user_id, { invoker, config });
+            if (invoker) {
+                _this._privateUserStorage.set(user_id, { invoker, config });
+            }
         }
     }
 
@@ -261,7 +267,9 @@ class LagrangeMapper {
                 logger.warning(`${propertyKey} -> 群 ${group_id} 已经被注册过了，该操作将覆盖原本的！`);
             }
             const invoker = descriptor.value;
-            _this.groupStorage.set(group_id, { invoker, config });
+            if (invoker) {
+                _this.groupStorage.set(group_id, { invoker, config });
+            }
         }
     }
 
@@ -277,7 +285,9 @@ class LagrangeMapper {
                 logger.warning(`${propertyKey} -> 文件接受管线已经注册，如果你真的希望同时调用多个 onFileReceive，考虑使用 @onFileReceive({ ignoreWarning: true })`);
             }
             const invoker = descriptor.value;
-            _this.fileReceiveStorage.add({ invoker });
+            if (invoker) {
+                _this.fileReceiveStorage.add({ invoker });
+            }
         }
     }
 
@@ -293,7 +303,9 @@ class LagrangeMapper {
                 logger.warning(`${propertyKey} -> 群 ${group_id} 已经被注册过了，该操作将覆盖原本的！`);
             }
             const invoker = descriptor.value;
-            _this.groupIncreaseStorage.set(group_id, { invoker });
+            if (invoker) {
+                _this.groupIncreaseStorage.set(group_id, { invoker });
+            }
         }
     }
 
@@ -308,7 +320,9 @@ class LagrangeMapper {
                 logger.warning(`${propertyKey} -> 加好友/加群接受管线已经注册，如果你真的希望同时调用多个 onAddFriendOrGroup，考虑使用 @onAddFriendOrGroup({ ignoreWarning: true })`);
             }
             const invoker = descriptor.value;
-            _this.addFriendOrGroupStorage.add({ invoker });
+            if (invoker) {
+                _this.addFriendOrGroupStorage.add({ invoker });
+            }
         }
     }
 
@@ -316,7 +330,9 @@ class LagrangeMapper {
         const _this = this;
         return function (target: any, propertyKey: string, descriptor: MapperDescriptor<TimeScheduleInvoker>) {
             const invoker = descriptor.value;
-            _this.getCreateTimeSchedule.add({ invoker, config: { spec } });
+            if (invoker) {
+                _this.getCreateTimeSchedule.add({ invoker, config: { spec } });
+            }
         }
     }
 }

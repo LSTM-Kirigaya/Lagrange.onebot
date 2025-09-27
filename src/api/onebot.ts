@@ -1,6 +1,6 @@
 /**
  * @author 锦恢
- * @email 1193466151@qq.com
+ * @email zhelonghuang@qq.com
  * @description Lagrange.Core 前端接口
  * @comment 接口调用详细参考文档
  * - https://github.com/botuniverse/onebot-11/blob/master/communication/ws.md

@@ -3,7 +3,7 @@
     "version": "1.0.10",
     "author": {
         "name": "锦恢",
-        "email": "1193466151@qq.com"
+        "email": "zhelonghuang@qq.com"
     },
     "description": "基于 Lagrange.Core 实现的 NTQQ 接入框架",
     "keywords": [
@@ -22,7 +22,7 @@
         "serve": "tsc -w & serve dist"
     },
     "dependencies": {
-        "@modelcontextprotocol/sdk": "^1.18.1",
+        "@modelcontextprotocol/sdk": "^1.18.2",
         "@ptkdev/logger": "^1.8.0",
         "@types/node": "22.15.16",
         "axios": "^1.9.0",
@@ -36,6 +36,7 @@
         "@types/ws": "^8.5.10",
         "serve": "^14.2.3",
         "ts-node": "^10.9.2",
+        "ts-to-zod": "^4.0.1",
         "typescript": "^5.4.5"
     }
 }

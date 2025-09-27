@@ -13,5 +13,6 @@ server.run({
     host: '127.0.0.1',
     port: 8080,
     path: '/onebot/v11/ws',
-    qq: 1542544558
+    qq: 1542544558,
+    type: 'backward-websocket'
 });

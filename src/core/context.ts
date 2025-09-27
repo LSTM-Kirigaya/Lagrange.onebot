@@ -32,15 +32,19 @@ interface GetRawTextConfig {
 }
 
 export class LagrangeContext<T extends Lagrange.Message> {
-    public ws: WebSocket | undefined;
+    public ws: WebSocket;
     public fin: boolean;
-    public message: T | undefined;
+    public message: T;
     public qq: number;
 
     constructor(message: T) {
-        this.ws = lagrangeServer.ws;
         this.message = message;
         this.fin = false;
+        if (lagrangeServer.qq === undefined || lagrangeServer.ws === undefined) {
+            throw new Error('未初始化');
+        }
+
+        this.ws = lagrangeServer.ws;
         this.qq = lagrangeServer.qq;
     }
 
@@ -56,7 +60,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
             }
 
             if (!fin) {                
-                ws.send(JSON.stringify(apiJSON), (err: Error) => {
+                ws.send(JSON.stringify(apiJSON), (err?: Error) => {
                     console.log(err)
                     if (err) {
                         logger.warning('ws 发送消息错误, 是否在LaunchOption中缺少了AccessToken参数?');
@@ -65,7 +69,6 @@ export class LagrangeContext<T extends Lagrange.Message> {
                 });
             } else {
                 logger.warning('会话已经结束，send 已经停用，检查你的代码！');
-                resolve(undefined);
             }
         });
     }
@@ -113,7 +116,13 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param message 要发送的内容
      * @param auto_escape 消息内容是否作为纯文本发送（即不解析 CQ 码），只在 message 字段是字符串时有效
      */
-    public sendMsg(message_type?: 'private' | 'group', user_id?: number, group_id?: number, message?: string | Lagrange.Send.Default[], auto_escape: boolean = false) {
+    public sendMsg(
+        message_type?: 'private' | 'group',
+        user_id?: number,
+        group_id?: number,
+        message?: string | Lagrange.Send.Default[],
+        auto_escape: boolean = false
+    ) {
         return this.send<Lagrange.SendMsgResponse>({
             action: 'send_msg',
             params: { message_type, user_id, group_id, message, auto_escape }
@@ -128,7 +137,8 @@ export class LagrangeContext<T extends Lagrange.Message> {
     public getRawText(config?: GetRawTextConfig): string {
         const msg = this.message;
         config = config || { delimiter: '\n' };
-        if (msg['message'] instanceof Array) {
+        
+        if (msg.post_type === 'message' && msg['message'] instanceof Array) {
             const text: string[] = [];
             for (const message of msg['message']) {
                 if (message['type'] === 'text' && message['data']) {
@@ -570,7 +580,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
      * @param name 
      * @returns 
      */
-    public updatePrivateFile(user_id: number, file: string, name: string) {
+    public uploadPrivateFile(user_id: number, file: string, name: string) {
         return this.send<Lagrange.CommonResponse<null>>({
             action: 'upload_private_file',
             params: { user_id, file, name }
@@ -724,27 +734,29 @@ export class LagrangeServer {
         const cycleCbMap = this.cycleCbMap;
 
         // mounted 周期
-        cycleCbMap.get('mounted').forEach(cb => cb.call(this, new LagrangeContext({ post_type:'meta_event' })));
+        cycleCbMap.get('mounted')?.forEach(cb => cb.call(this, new LagrangeContext({ post_type: 'meta_event' })));
 
         // 执行注册的定时器
         this.timeScheduleCbMap.forEach(({ cb, spec }) => {
             scheduleJob(spec, () => {
-                cb.call(this, new LagrangeContext({ post_type:'meta_event' }));
+                cb.call(this, new LagrangeContext({ post_type: 'meta_event' }));
             });
         });
 
         // 执行 mapper 中注册的定时器
         lagrangeMapper.getCreateTimeSchedule.forEach(({ invoker, config }) => {
-            scheduleJob(config.spec, () => {
-                invoker.call(this, new LagrangeContext({ post_type:'meta_event' }));
-            });
+            if (config) {
+                scheduleJob(config.spec, () => {
+                    invoker.call(this, new LagrangeContext({ post_type: 'meta_event' }));
+                });
+            }
         });
 
         process.on('SIGINT', () => {
             // unmounted 周期
-            cycleCbMap.get('unmounted').forEach(cb => cb.call(this, new LagrangeContext({ post_type:'meta_event' })));
+            cycleCbMap.get('unmounted')?.forEach(cb => cb.call(this, new LagrangeContext({ post_type:'meta_event' })));
 
-            this.ws.close();
+            this.ws?.close();
             this.wsServer?.close();
         });
     }
@@ -765,14 +777,14 @@ export class LagrangeServer {
      * @description 注册客户端初始化完成后的行为
      */
     public onMounted(cb: CycleCb) {
-        this.cycleCbMap.get('mounted').push(cb);
+        this.cycleCbMap.get('mounted')?.push(cb);
     }
 
     /**
      * @description 注册客户端退出时的行为
      */
     public onUnmounted(cb: CycleCb) {
-        this.cycleCbMap.get('unmounted').push(cb);
+        this.cycleCbMap.get('unmounted')?.push(cb);
     }
 }
 

@@ -10,6 +10,8 @@ import {
     MapperDescriptor,
 } from './core/mapper';
 
+export * from './core/message';
+
 import { LagrangeContext } from './core/context';
 import { logger } from './util';
 
