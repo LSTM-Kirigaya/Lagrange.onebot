@@ -5,6 +5,8 @@ import { LagrangeContext } from "../core/context";
 import type * as Lagrange from '../core/type';
 import { Default } from './type';
 import * as Tool from './tool';
+import * as ExtraTool from './extraTool';
+
 import { atMessagePrompt } from "./prompt";
 
 export class LagrangeMcpServer {
@@ -123,19 +125,21 @@ export class LagrangeMcpServer {
 
         // 发送群公告
         this.server.registerTool(
-            'qq_send_group_notice',
+            'util_websearch',
             {
                 description: '发送群公告',
                 inputSchema: {
-                    group_id: z.number().describe('群号'),
-                    content: z.string().describe('公告内容'),
+                    url: z.string().describe('url'),
                 },
             },
-            async ({ group_id, content }) => {
-                const responseText = await Tool.sendGroupNotice(context, group_id, content);
+            async ({ url }) => {
+                const responseText = await ExtraTool.websearch(url);
                 return { content: [{ type: 'text', text: responseText }] };
             }
         );
+
+
+        // rag
 
     }
 
