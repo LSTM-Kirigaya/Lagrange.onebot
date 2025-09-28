@@ -1,0 +1,13 @@
+{
+  "items": [
+    [
+      {
+        "connectionType": "STREAMABLE_HTTP",
+        "name": "STREAMABLE_HTTP-1759063414311",
+        "version": "1.0",
+        "url": "http://localhost:3010/mcp",
+        "oauth": ""
+      }
+    ]
+  ]
+}

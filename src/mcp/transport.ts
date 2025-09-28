@@ -4,6 +4,7 @@ import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mc
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js"
 import express, { NextFunction, Request, Response } from 'express';
+import chalk from "chalk";
 
 
 export class McpTransport {
@@ -79,7 +80,15 @@ export class McpTransport {
 
     public start() {
         this.app.listen(this.port, () => {
-            console.log(`🚀 MCP HTTP Server running at http://localhost:${this.port}`);
+            
+            const url = `http://localhost:${this.port}/mcp`;
+
+            console.log(
+                chalk.bold.cyan("🚀 MCP HTTP Server") +
+                " running at " +
+                chalk.green.underline(url)
+            );
+
         });
     }
 }

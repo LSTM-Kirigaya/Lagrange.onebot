@@ -12,18 +12,19 @@ import type * as Lagrange from './type';
 import { GetRawTextConfig, ILaunchConfig, LaunchOption } from './dto';
 import path from 'path';
 import { createMcpServer } from '../mcp';
+import { showBanner } from '../util/banner';
 
 
 export class LagrangeContext<T extends Lagrange.Message> {
     public ws: WebSocket;
     public fin: boolean;
     public message: T;
-    public qq: number;
+    public qq?: number;
 
     constructor(message: T) {
         this.message = message;
         this.fin = false;
-        if (lagrangeServer.qq === undefined || lagrangeServer.ws === undefined) {
+        if (lagrangeServer.ws === undefined) {
             throw new Error('未初始化');
         }
 
@@ -33,18 +34,17 @@ export class LagrangeContext<T extends Lagrange.Message> {
 
     public send<T>(apiJSON: Lagrange.ApiJSON): Promise<Lagrange.CommonResponse<T> | Error> {
         const ws = this.ws;
-        const fin = this.fin;        
+        const fin = this.fin;
         return new Promise<Lagrange.CommonResponse<T> | Error>(resolve => {
             ws.onmessage = (event) => {
-                const payload = JSON.parse(event.data.toString());                
+                const payload = JSON.parse(event.data.toString());
                 if (payload && payload.meta_event_type !== 'heartbeat') {
                     resolve(payload as Lagrange.CommonResponse<T>);
                 }
             }
 
-            if (!fin) {                
+            if (!fin) {
                 ws.send(JSON.stringify(apiJSON), (err?: Error) => {
-                    console.log(err)
                     if (err) {
                         logger.warning('ws 发送消息错误, 是否在LaunchOption中缺少了AccessToken参数?');
                         resolve(err);
@@ -120,7 +120,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
     public getRawText(config?: GetRawTextConfig): string {
         const msg = this.message;
         config = config || { delimiter: '\n' };
-        
+
         if (msg.post_type === 'message' && msg['message'] instanceof Array) {
             const text: string[] = [];
             for (const message of msg['message']) {
@@ -366,7 +366,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
     public getLoginInfo() {
         return this.send<Lagrange.GetLoginInfoResponse>({
             action: 'get_login_info',
-            params: {  }
+            params: {}
         });
     }
 
@@ -388,7 +388,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
     public getFriendList() {
         return this.send<Lagrange.GetFriendListResponse>({
             action: 'get_friend_list',
-            params: {  }
+            params: {}
         });
     }
 
@@ -410,7 +410,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
     public getGroupList() {
         return this.send<Lagrange.GetGroupListResponse>({
             action: 'get_group_list',
-            params: {  }
+            params: {}
         });
     }
 
@@ -467,7 +467,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
     public getCsrfToken() {
         return this.send<Lagrange.GetCsrfTokenResponse>({
             action: 'get_csrf_token',
-            params: {  }
+            params: {}
         });
     }
 
@@ -477,7 +477,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
     public getCredentials() {
         return this.send<Lagrange.GetCredentialsResponse>({
             action: 'get_credentials',
-            params: {  }
+            params: {}
         });
     }
 
@@ -502,7 +502,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
     public canSendImage() {
         return this.send<Lagrange.CanSendImageResponse>({
             action: 'can_send_image',
-            params: {  }
+            params: {}
         });
     }
 
@@ -512,7 +512,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
     public canSendRecord() {
         return this.send<Lagrange.CanSendRecordResponse>({
             action: 'can_send_record',
-            params: {  }
+            params: {}
         });
     }
 
@@ -522,7 +522,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
     public getStatus() {
         return this.send<Lagrange.GetStatusResponse>({
             action: 'get_status',
-            params: {  }
+            params: {}
         });
     }
 
@@ -532,7 +532,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
     public getVersionInfo() {
         return this.send<Lagrange.GetVersionInfoResponse>({
             action: 'get_version_info',
-            params: {  }
+            params: {}
         });
     }
 
@@ -542,7 +542,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
     public setRestart() {
         return this.send<Lagrange.SetRestartResponse>({
             action: 'set_restart',
-            params: {  }
+            params: {}
         });
     }
 
@@ -552,7 +552,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
     public cleanCache() {
         return this.send<Lagrange.CleanCacheResponse>({
             action: 'clean_cache',
-            params: {  }
+            params: {}
         });
     }
 
@@ -677,40 +677,61 @@ export class LagrangeServer {
     }
 
     public async run(config: LaunchOption): Promise<void> {
+        showBanner();
+
         this.config = config;
 
         switch (config.type) {
             case "forward-websocket":
-                this.ws = new WebSocket(`ws://${config.host}:${config.port}`,{headers:{
-                    Authorization: `Bearer ${config.access_token}`
-                }});
+                this.ws = new WebSocket(`ws://${config.host}:${config.port}`, {
+                    headers: {
+                        Authorization: `Bearer ${config.access_token}`
+                    }
+                });
                 await this.clientConnect(this.ws);
-                console.log(chalk.green('✓ websocket 服务器成功链连接'));
+                console.log(
+                    chalk.bold.cyan("🔗 Forward Websocket Server") +
+                    " running at " +
+                    chalk.green.underline(`ws://${config.host}:${config.port}`)
+                );
+
                 break;
             case 'backward-websocket':
                 const wsServer = new WebSocket.Server(config);
                 const ws = await this.serverConnect(wsServer);
 
+                console.log(
+                    chalk.bold.cyan("🔗 Listen Lagrange.Core Server") +
+                    " at " +
+                    chalk.green.underline(`ws://${config.host}:${config.port}`)
+                );
+
                 this.wsServer = wsServer;
-                this.ws = ws;    
-                console.log(chalk.green('✓ websocket 服务器创建完成'));
+                this.ws = ws;
                 break;
             default:
                 throw new Error("Unknown connection type! ");
         }
 
         const context = new LagrangeContext({ post_type: 'meta_event' });
+
+        await context.getFriendList();
         const loginInfo = await context.getLoginInfo() as Lagrange.CommonResponse<Lagrange.GetLoginInfoResponse>;
+
         this.qq = loginInfo.data.user_id;
         this.nickname = loginInfo.data.nickname;
 
-        console.log(chalk.blue('🔗 完成 websocket 连接，启动参数如下'));
-        console.table(config);
+        console.log(
+            chalk.bold.cyan("🤖 Robot ") +
+            chalk.blue(this.qq) +
+            " login in as " +
+            chalk.blue(this.nickname)
+        );
+
         pipe.registerServer(this);
 
         this.ws.on('message', onMessage);
         this.ws.on('close', onClose);
-        console.log(chalk.green('✓ 消息处理管线注册完成'));
 
         const cycleCbMap = this.cycleCbMap;
 
@@ -735,7 +756,7 @@ export class LagrangeServer {
 
         process.on('SIGINT', () => {
             // unmounted 周期
-            cycleCbMap.get('unmounted')?.forEach(cb => cb.call(this, new LagrangeContext({ post_type:'meta_event' })));
+            cycleCbMap.get('unmounted')?.forEach(cb => cb.call(this, new LagrangeContext({ post_type: 'meta_event' })));
 
             this.ws?.close();
             this.wsServer?.close();
@@ -758,7 +779,7 @@ export class LagrangeServer {
             );
             return;
         }
-        
+
         const buffer = fs.readFileSync(configPath, 'utf-8');
         const appSettings = JSON.parse(buffer);
         const impl = appSettings.Implementations[0];

@@ -3,6 +3,7 @@ import lagrangeMapper from './mapper';
 import type * as Lagrange from './type';
 import { LagrangeContext, LagrangeServer } from './context';
 import { logger } from '../util';
+import chalk from 'chalk';
 
 class Pipe {
     server?: LagrangeServer;
@@ -70,5 +71,8 @@ export function onMessage(event: Buffer) {
 
 
 export function onClose() {
-    logger.info('成功与 lagrange 断开连接')
+    console.log(
+        chalk.green.bold('[Lagrange]') +
+        chalk.green(' 断开连接')
+    );    
 }
