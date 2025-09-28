@@ -1,4 +1,4 @@
-import lagrangeServer, { LagrangeContext } from "../core/context";
+import { LagrangeContext } from "../core/context";
 import type * as Lagrange from '../core/type';
 
 export async function atMessagePrompt(
@@ -6,7 +6,8 @@ export async function atMessagePrompt(
     group_id: number,
 ) {
     const group = await context.getGroupInfo(group_id) as Lagrange.CommonResponse<Lagrange.GetGroupInfoResponse>;
-    const me = await context.getGroupMemberInfo(group_id, lagrangeServer.qq as number) as Lagrange.CommonResponse<Lagrange.GetGroupMemberInfoResponse>;
+    const loginInfo = await context.getLoginInfo() as Lagrange.CommonResponse<Lagrange.GetLoginInfoResponse>;
+    const me = await context.getGroupMemberInfo(group_id, loginInfo.data.user_id) as Lagrange.CommonResponse<Lagrange.GetGroupMemberInfoResponse>;
 
     return `
 <INFORMATION>    

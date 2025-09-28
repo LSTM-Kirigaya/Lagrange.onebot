@@ -5,7 +5,7 @@ import { LagrangeContext, LagrangeServer } from './context';
 import { logger } from '../util';
 
 class Pipe {
-    server: LagrangeServer;
+    server?: LagrangeServer;
 
     public registerServer(server: LagrangeServer) {
         this.server = server;

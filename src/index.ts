@@ -42,11 +42,13 @@ import {
     GroupUserInvokeContext
 } from './core/type';
 
+import * as LagrangeFactory from './core/factory';
 
 export {
     server,
     mapper,
     plugins,
+    LagrangeFactory,
     MessageInvoker,
     PrivateUserInvoker,
     GroupUserInvoker,

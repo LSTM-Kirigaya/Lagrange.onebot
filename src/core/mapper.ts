@@ -54,25 +54,16 @@ interface OnAddFriendOrGroupConfig {
 
 
 class LagrangeMapper {
-    private _privateUserStorage: Map<number, MessageInvokerStorage<PrivateUserInvoker>>;
-    private _groupStorage: Map<number, MessageInvokerStorage<GroupUserInvoker>>;
-    private _fileReceiveStorage: Set<MessageInvokerStorage<FileReceiveInvoker>>;
-    private _groupIncreaseStorage: Map<number, MessageInvokerStorage<GroupIncreaseInvoker>>;
-    private _addFriendOrGroupStorage: Set<MessageInvokerStorage<AddFriendOrGroupInvoker>>;
-    private _createTimeSchedule: Set<MessageInvokerStorage<TimeScheduleInvoker>>;
 
-    private _memoryStorage: Map<number, SizedQueue<Lagrange.Message>>;
-
-    constructor() {
-        this._privateUserStorage = new Map<number, MessageInvokerStorage<PrivateUserInvoker>>();
-        this._groupStorage = new Map<number, MessageInvokerStorage<GroupUserInvoker>>();
-        this._fileReceiveStorage = new Set<MessageInvokerStorage<FileReceiveInvoker>>();
-        this._groupIncreaseStorage = new Map<number, MessageInvokerStorage<GroupIncreaseInvoker>>();
-        this._addFriendOrGroupStorage = new Set<MessageInvokerStorage<AddFriendOrGroupInvoker>>();
-        this._createTimeSchedule = new Set<MessageInvokerStorage<TimeScheduleInvoker>>();
-
-        this._memoryStorage = new Map<number, SizedQueue<Lagrange.Message>>();
-    }
+    constructor(
+        private readonly _privateUserStorage = new Map<number, MessageInvokerStorage<PrivateUserInvoker>>(),
+        private readonly _groupStorage= new Map<number, MessageInvokerStorage<GroupUserInvoker>>(),
+        private readonly _fileReceiveStorage = new Set<MessageInvokerStorage<FileReceiveInvoker>>(),
+        private readonly _groupIncreaseStorage = new Map<number, MessageInvokerStorage<GroupIncreaseInvoker>>(),
+        private readonly _addFriendOrGroupStorage = new Set<MessageInvokerStorage<AddFriendOrGroupInvoker>>(),
+        private readonly _createTimeSchedule = new Set<MessageInvokerStorage<TimeScheduleInvoker>>(),
+        private readonly _memoryStorage = new Map<number, SizedQueue<Lagrange.Message>>()
+    ) { }
 
     get privateUserStorage() {
         return this._privateUserStorage;

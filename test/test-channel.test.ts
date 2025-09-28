@@ -1,7 +1,6 @@
 import { mapper, LagrangeContext, PrivateMessage, GroupMessage, plugins, AddFriendOrGroupMessage, ApproveMessage } from '../dist';
 
-export class Impl {
-
+export class TestChannel {
     @mapper.onPrivateUser(1193466151)
     async handleJinhui(c: LagrangeContext<PrivateMessage>) {
         // const msg = c.message.raw_message;

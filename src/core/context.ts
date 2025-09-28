@@ -1,35 +1,17 @@
 import WebSocket from 'ws';
+import * as fs from 'fs';
+import chalk from 'chalk';
+
+import { scheduleJob } from 'node-schedule';
 
 import { pipe, onMessage, onClose } from './event';
 import { getGroupMessageImagePath, getPrivateMessageImagePath, getUserAvatarPath, logger } from '../util';
 import lagrangeMapper from './mapper';
-import { scheduleJob } from 'node-schedule';
 
 import type * as Lagrange from './type';
+import { GetRawTextConfig, ILaunchConfig, LaunchOption } from './dto';
+import path from 'path';
 
-interface CommonLaunchOption {
-    qq: number,
-    access_token?: string
-}
-
-interface ForwardWebsocketLaunchOption extends CommonLaunchOption {
-    type: "forward-websocket",
-    host: string,
-    port: number
-}
-
-interface BackwardWebsocketLaunchOption extends CommonLaunchOption {
-    type: "backward-websocket",
-    host: string,
-    port: number,
-    path: string
-}
-
-type LaunchOption = ForwardWebsocketLaunchOption | BackwardWebsocketLaunchOption;
-
-interface GetRawTextConfig {
-    delimiter: string
-}
 
 export class LagrangeContext<T extends Lagrange.Message> {
     public ws: WebSocket;
@@ -654,24 +636,19 @@ interface timeScheduleCb {
 }
 
 export class LagrangeServer {
-    public wsServer: WebSocket.Server | undefined;
-    public ws: WebSocket | undefined;
-    public config: LaunchOption | undefined;
-    public qq: number | undefined;
 
-    private cycleCbMap: Map<CycleEvent, CycleCb[]>;
-    private timeScheduleCbMap: timeScheduleCb[];
-
-    constructor() {
-        this.wsServer = undefined;
-        this.ws = undefined;
-        this.qq = undefined;
-        this.config = undefined;
-        this.cycleCbMap = new Map<CycleEvent, CycleCb[]>();
-
+    constructor(
+        public wsServer?: WebSocket.Server,
+        public ws?: WebSocket,
+        public config?: LaunchOption,
+        public qq?: number,
+        public nickname?: string,
+        private readonly controllers: any[] = [],
+        private readonly cycleCbMap: Map<CycleEvent, CycleCb[]> = new Map(),
+        private readonly timeScheduleCbMap: timeScheduleCb[] = []
+    ) {
         this.cycleCbMap.set('mounted', []);
         this.cycleCbMap.set('unmounted', []);
-        this.timeScheduleCbMap = [];
     }
 
     private serverConnect(wsServer: WebSocket.Server): Promise<WebSocket> {
@@ -707,7 +684,7 @@ export class LagrangeServer {
                     Authorization: `Bearer ${config.access_token}`
                 }});
                 await this.clientConnect(this.ws);
-                logger.info('websocket 服务器成功链连接');
+                console.log(chalk.green('✓ websocket 服务器成功链连接'));
                 break;
             case 'backward-websocket':
                 const wsServer = new WebSocket.Server(config);
@@ -715,21 +692,24 @@ export class LagrangeServer {
 
                 this.wsServer = wsServer;
                 this.ws = ws;    
-                logger.info('websocket 服务器创建完成');
+                console.log(chalk.green('✓ websocket 服务器创建完成'));
                 break;
             default:
                 throw new Error("Unknown connection type! ");
         }
 
-        this.qq = config.qq;
+        const context = new LagrangeContext({ post_type: 'meta_event' });
+        const loginInfo = await context.getLoginInfo() as Lagrange.CommonResponse<Lagrange.GetLoginInfoResponse>;
+        this.qq = loginInfo.data.user_id;
+        this.nickname = loginInfo.data.nickname;
 
-        logger.info('完成 websocket 连接，启动参数如下');
+        console.log(chalk.blue('🔗 完成 websocket 连接，启动参数如下'));
         console.table(config);
         pipe.registerServer(this);
 
         this.ws.on('message', onMessage);
         this.ws.on('close', onClose);
-        logger.info('消息处理管线注册完成');
+        console.log(chalk.green('✓ 消息处理管线注册完成'));
 
         const cycleCbMap = this.cycleCbMap;
 
@@ -762,6 +742,35 @@ export class LagrangeServer {
     }
 
     /**
+     * @description 启动 QQ 服务进程
+     */
+    public async launch(config?: ILaunchConfig) {
+        // 检查配置文件路径
+        const {
+            configPath = path.join(process.env.LAGRANGE_CORE_HOME || '', 'appsettings.json')
+        } = config || {};
+
+        if (!fs.existsSync(configPath)) {
+            console.log(
+                chalk.red('请检查 appsettings.json 的路径是否正确')
+            );
+            return;
+        }
+        
+        const buffer = fs.readFileSync(configPath, 'utf-8');
+        const appSettings = JSON.parse(buffer);
+        const impl = appSettings.Implementations[0];
+
+        const launchOption: LaunchOption = {
+            type: impl.Type === 'ReverseWebSocket' ? 'backward-websocket' : 'forward-websocket',
+            host: impl.Host,
+            port: impl.Port
+        } as LaunchOption;
+
+        await this.run(launchOption);
+    }
+
+    /**
      * @description 添加定时器
      * @param spec 描述定时器的字符串，比如 '0 31 16 * * *' 表示每天下午 16:31 执行
      * @param cb 注入 onebot 上下文 的回调函数
@@ -785,6 +794,10 @@ export class LagrangeServer {
      */
     public onUnmounted(cb: CycleCb) {
         this.cycleCbMap.get('unmounted')?.push(cb);
+    }
+
+    public addController(controller: any) {
+        this.controllers.push(controller);
     }
 }
 
