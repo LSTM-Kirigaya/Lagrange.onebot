@@ -793,10 +793,14 @@ export class LagrangeServer {
         await this.run(launchOption);
 
         if (mcp) {
-            createMcpServer(
+            const transport = createMcpServer(
                 new LagrangeContext({ post_type: 'meta_event' }),
                 config?.mcpOption
             );
+
+            this.onUnmounted(c => {
+                transport.close();
+            });
         }
     }
 

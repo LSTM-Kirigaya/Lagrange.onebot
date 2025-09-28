@@ -1,6 +1,5 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from "zod";
 
 import { LagrangeContext } from "../core/context";
@@ -151,7 +150,7 @@ export class LagrangeMcpManager {
         this.server.registerTool(
             'util_websearch',
             {
-                description: '发送群公告',
+                description: '获取网页内容',
                 inputSchema: {
                     url: z.string().describe('url'),
                 },
@@ -200,4 +199,7 @@ export function createMcpServer(
 
     const transport = new McpTransport(mcpServer, option.port || 3010);
     transport.start();
+
+
+    return transport;
 }

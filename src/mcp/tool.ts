@@ -9,7 +9,7 @@ export async function sendGroupMsg(
     message: Lagrange.Send.Default[],
 ) {
     const res = await context.sendGroupMsg(group_id, message);
-    const text = (res instanceof Error) ? res.message : res.data.toString();
+    const text = (res instanceof Error) ? res.message : JSON.stringify(res.data, null, 2);
     return text;
 }
 
@@ -18,7 +18,7 @@ export async function getGroupInfo(
     group_id: number,
 ) {
     const res = await context.getGroupInfo(group_id);
-    const text = (res instanceof Error) ? res.message : res.data.toString();
+    const text = (res instanceof Error) ? res.message : JSON.stringify(res.data, null, 2);
     return text;
 }
 
@@ -28,7 +28,7 @@ export async function getGroupMemberList(
     group_id: number,
 ) {
     const res = await context.getGroupMemberList(group_id);
-    const text = (res instanceof Error) ? res.message : res.data.toString();
+    const text = (res instanceof Error) ? res.message : JSON.stringify(res.data, null, 2);
     return text;
 }
 
@@ -39,7 +39,7 @@ export async function getGroupMemberInfo(
     user_id: number,
 ) {
     const res = await context.getGroupMemberInfo(group_id, user_id);
-    const text = (res instanceof Error) ? res.message : res.data.toString();
+    const text = (res instanceof Error) ? res.message : JSON.stringify(res.data, null, 2);
     return text;
 }
 
@@ -51,7 +51,7 @@ export async function uploadGroupFile(
     name: string,
 ) {
     const res = await context.uploadGroupFile(group_id, file, name);
-    const text = (res instanceof Error) ? res.message : res.data.toString();
+    const text = (res instanceof Error) ? res.message : 'upload successfully';
     return text;
 }
 
@@ -62,6 +62,6 @@ export async function sendGroupNotice(
     content: string,
 ) {
     const res = await context.sendGroupNotice(group_id, content)
-    const text = (res instanceof Error) ? res.message : res.data.toString();
+    const text = (res instanceof Error) ? res.message : JSON.stringify(res.data, null, 2);
     return text;
 }
