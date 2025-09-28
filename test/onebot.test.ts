@@ -9,10 +9,12 @@ server.onMounted(c => {
     c.sendPrivateMsg(1193466151, '成功上线');
 });
 
-server.onUnmounted(c => {
-    c.sendPrivateMsg(1193466151, '成功下线');
-})
-
 server.launch({
-    configPath: '/home/kirigaya/project/Lagrange.RagBot/node/Lagrange.Core'
+    configPath: '/home/kirigaya/project/Lagrange.RagBot/node/Lagrange.Core',
+    mcp: true,
+    mcpOption: {
+        enableMemory: true,
+        enableWebsearch: true,
+        port: 3010
+    }
 });

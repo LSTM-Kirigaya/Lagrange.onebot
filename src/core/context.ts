@@ -11,6 +11,7 @@ import lagrangeMapper from './mapper';
 import type * as Lagrange from './type';
 import { GetRawTextConfig, ILaunchConfig, LaunchOption } from './dto';
 import path from 'path';
+import { createMcpServer } from '../mcp';
 
 
 export class LagrangeContext<T extends Lagrange.Message> {
@@ -747,7 +748,8 @@ export class LagrangeServer {
     public async launch(config?: ILaunchConfig) {
         // 检查配置文件路径
         const {
-            configPath = path.join(process.env.LAGRANGE_CORE_HOME || '', 'appsettings.json')
+            configPath = path.join(process.env.LAGRANGE_CORE_HOME || '', 'appsettings.json'),
+            mcp = false,
         } = config || {};
 
         if (!fs.existsSync(configPath)) {
@@ -768,6 +770,13 @@ export class LagrangeServer {
         } as LaunchOption;
 
         await this.run(launchOption);
+
+        if (mcp) {
+            createMcpServer(
+                new LagrangeContext({ post_type: 'meta_event' }),
+                config?.mcpOption
+            );
+        }
     }
 
     /**

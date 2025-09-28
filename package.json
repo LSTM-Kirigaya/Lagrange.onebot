@@ -27,12 +27,14 @@
         "@types/node": "22.15.16",
         "axios": "^1.9.0",
         "chalk": "^5.6.2",
+        "express": "^5.1.0",
         "node-schedule": "^2.1.1",
         "pm2": "^5.4.0",
         "ws": "^8.17.0",
         "yaml": "^2.4.2"
     },
     "devDependencies": {
+        "@types/express": "^5.0.3",
         "@types/node-schedule": "^2.1.7",
         "@types/ws": "^8.5.10",
         "serve": "^14.2.3",

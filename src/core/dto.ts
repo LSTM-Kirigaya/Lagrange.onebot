@@ -18,6 +18,23 @@ export interface BackwardWebsocketLaunchOption extends CommonLaunchOption {
 
 export type LaunchOption = ForwardWebsocketLaunchOption | BackwardWebsocketLaunchOption;
 
+export interface McpLanchOption {
+    
+    host?: string;
+    
+    port?: number;
+
+    /**
+     * @description 是否启动 memory
+     */
+    enableMemory?: boolean
+
+    /**
+     * @description 是否启动 websearch
+     */
+    enableWebsearch?: boolean
+}
+
 export interface ILaunchConfig {
     
     /**
@@ -25,6 +42,15 @@ export interface ILaunchConfig {
      */
     configPath?: string
 
+    /**
+     * @description 是否启动 MCP
+     */
+    mcp?: boolean
+
+    /**
+     * @description MCP 启动参数
+     */
+    mcpOption?: McpLanchOption
 }
 
 export interface GetRawTextConfig {

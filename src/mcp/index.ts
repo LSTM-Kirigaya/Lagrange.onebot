@@ -1,6 +1,8 @@
-import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp";
+
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from "zod";
+
 import { LagrangeContext } from "../core/context";
 import type * as Lagrange from '../core/type';
 import { Default } from './type';
@@ -8,17 +10,18 @@ import * as Tool from './tool';
 import * as ExtraTool from './extraTool';
 
 import { atMessagePrompt } from "./prompt";
+import { McpLanchOption } from "../core/dto";
+import { McpTransport } from "./transport";
 
-export class LagrangeMcpServer {
+export class LagrangeMcpManager {
     constructor(
         private readonly server: McpServer,
-        private readonly transport: StreamableHTTPServerTransport,
         private readonly context: LagrangeContext<Lagrange.Message>,
     ) {
     }
 
 
-    public registerCommunicationTools() {
+    public registerBasic() {
         const context = this.context;
 
         // 发送群消息
@@ -117,35 +120,8 @@ export class LagrangeMcpServer {
             }
         );
 
-    }
 
-
-    public registerFunctionalityTools() {
-        const context = this.context;
-
-        // 发送群公告
-        this.server.registerTool(
-            'util_websearch',
-            {
-                description: '发送群公告',
-                inputSchema: {
-                    url: z.string().describe('url'),
-                },
-            },
-            async ({ url }) => {
-                const responseText = await ExtraTool.websearch(url);
-                return { content: [{ type: 'text', text: responseText }] };
-            }
-        );
-
-
-        // rag
-
-    }
-
-    public registerBasicPrompts() {
-        const context = this.context;
-
+        // @ 时的 prompt
         this.server.registerPrompt(
             "at-message",
             {
@@ -164,5 +140,64 @@ export class LagrangeMcpServer {
                 }]
             })
         )
+
     }
+
+
+    public registerWebsearch() {
+        const context = this.context;
+
+        // 发送群公告
+        this.server.registerTool(
+            'util_websearch',
+            {
+                description: '发送群公告',
+                inputSchema: {
+                    url: z.string().describe('url'),
+                },
+            },
+            async ({ url }) => {
+                const responseText = await ExtraTool.websearch(url);
+                return { content: [{ type: 'text', text: responseText }] };
+            }
+        );
+    }
+
+    public registerMemory() {
+        // rag
+
+    }
+
+    public register(option: McpLanchOption) {
+        const {
+            enableMemory = true,
+            enableWebsearch = true
+        } = option;
+
+        this.registerBasic();
+
+        if (enableMemory) {
+            this.registerMemory();
+        }
+
+        if (enableWebsearch) {
+            this.registerWebsearch();
+        }
+    }
+}
+
+export function createMcpServer(
+    context: LagrangeContext<Lagrange.Message>,
+    option: McpLanchOption = {}
+) {
+    const mcpServer = new McpServer({
+        name: 'lagrange.onebot.v11',
+        version: '1.0.10',
+    });
+
+    const mcpContainer = new LagrangeMcpManager(mcpServer, context);
+    mcpContainer.register(option);
+
+    const transport = new McpTransport(mcpServer, option.port || 3010);
+    transport.start();
 }

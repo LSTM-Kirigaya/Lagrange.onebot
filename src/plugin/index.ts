@@ -28,7 +28,9 @@ class Plugins {
             if (registeredPlugins.has(pluginName)) {
                 logger.warning(`名为 ${pluginName} 插件已经被注册，本次操作将会覆盖原本的插件`);
             }
-            registeredPlugins.set(pluginName, descriptor.value);
+            if (descriptor.value) {
+                registeredPlugins.set(pluginName, descriptor.value);
+            }
         }
     }
 
@@ -42,11 +44,17 @@ class Plugins {
         return function(target: any, propertyKey: string, descriptor: MapperDescriptor<MessageInvoker<Lagrange.Message>>) {
             const fn = descriptor.value;
             descriptor.value = async function(c: LagrangeContext<Lagrange.Message>) {
-                await pluginFn(c);
+                if (pluginFn) {
+                    await pluginFn(c);
+                }
+
                 if (c.fin) {
                     return;
                 }
-                fn(c);
+
+                if (fn) {
+                    fn(c);
+                }
             }
         }
     }
