@@ -65,3 +65,23 @@ export async function sendGroupNotice(
     const text = (res instanceof Error) ? res.message : JSON.stringify(res.data, null, 2);
     return text;
 }
+
+export async function getLatestMessages(
+    context: LagrangeContext<Lagrange.Message>,
+    group_id: number,
+    limit: number,
+) {
+    const realmService = context.realmService;
+    if (!realmService) {
+        return 'realm 数据库未初始化，无法获取最新的信息';
+    }
+
+    const filterContext = context as LagrangeContext<Lagrange.GroupMessage | Lagrange.PrivateMessage>;
+    const queryData = await realmService.getLatestGroupMessages(filterContext, group_id, limit);
+
+    if (!queryData) {
+        return '未找到数据';
+    }
+
+    return JSON.stringify(queryData, null, 2);
+}

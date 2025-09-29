@@ -120,6 +120,22 @@ export class LagrangeMcpManager {
         );
 
 
+        this.server.registerTool(
+            "qq_get_latest_messages",
+            {
+                description: "当用户发送消息时的输入",
+                inputSchema: {
+                    group_id: z.number().describe('群号'),
+                    messageCount: z.number().describe('获取最近几条消息'),
+                },
+            },
+            async ({ group_id, messageCount }) => {
+                const responseText = await Tool.getLatestMessages(context, group_id, messageCount);
+                return { content: [{ type: 'text', text: responseText }] };
+            }
+        );
+
+
         // @ 时的 prompt
         this.server.registerPrompt(
             "at-message",
@@ -138,7 +154,7 @@ export class LagrangeMcpManager {
                     }
                 }]
             })
-        )
+        );
 
     }
 

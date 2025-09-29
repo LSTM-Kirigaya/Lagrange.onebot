@@ -1,5 +1,4 @@
 export interface CommonLaunchOption {
-    qq: number,
     access_token?: string
 }
 
@@ -24,6 +23,7 @@ export interface McpLanchOption {
     
     port?: number;
 
+
     /**
      * @description 是否启动 memory
      */
@@ -41,6 +41,11 @@ export interface ILaunchConfig {
      * @description appsettings.json 的路径，默认通过环境变量 `$LAGRANGE_CORE_HOME` 获取
      */
     configPath?: string
+
+    /**
+     * @description 数据库文件夹，默认为 lagrange-0-db
+     */
+    db?: string
 
     /**
      * @description 是否启动 MCP

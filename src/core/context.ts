@@ -13,6 +13,7 @@ import { GetRawTextConfig, ILaunchConfig, LaunchOption } from './dto';
 import path from 'path';
 import { createMcpServer } from '../mcp';
 import { showBanner } from '../util/banner';
+import { RealmService } from '../util/realm';
 
 
 export class LagrangeContext<T extends Lagrange.Message> {
@@ -20,6 +21,8 @@ export class LagrangeContext<T extends Lagrange.Message> {
     public fin: boolean;
     public message: T;
     public qq?: number;
+    public realmService?: RealmService;
+
 
     constructor(message: T) {
         this.message = message;
@@ -30,6 +33,8 @@ export class LagrangeContext<T extends Lagrange.Message> {
 
         this.ws = lagrangeServer.ws;
         this.qq = lagrangeServer.qq;
+
+        this.realmService = lagrangeServer.realmService;
     }
 
     public send<T>(apiJSON: Lagrange.ApiJSON): Promise<Lagrange.CommonResponse<T> | Error> {
@@ -644,6 +649,7 @@ export class LagrangeServer {
         public config?: LaunchOption,
         public qq?: number,
         public nickname?: string,
+        public realmService?: RealmService,
         private readonly controllers: any[] = [],
         private readonly cycleCbMap: Map<CycleEvent, CycleCb[]> = new Map(),
         private readonly timeScheduleCbMap: timeScheduleCb[] = []
@@ -770,6 +776,7 @@ export class LagrangeServer {
         // 检查配置文件路径
         const {
             configPath = path.join(process.env.LAGRANGE_CORE_HOME || '', 'appsettings.json'),
+            db = 'lagrange-0-db',
             mcp = false,
         } = config || {};
 
@@ -780,6 +787,22 @@ export class LagrangeServer {
             return;
         }
 
+        // 获取 home 路径
+        const lagrangeHome = path.dirname(configPath);
+
+        // 连接数据库
+        const realmService = new RealmService({
+            path: path.join(lagrangeHome, db, '.realm'),
+            schemaVersion: 0,
+            encryptionKey: undefined
+        });
+        await realmService.connect();
+        
+        this.realmService = realmService;
+        this.onUnmounted(c => realmService.close());
+
+
+        // 根据配置选择启动
         const buffer = fs.readFileSync(configPath, 'utf-8');
         const appSettings = JSON.parse(buffer);
         const impl = appSettings.Implementations[0];
@@ -798,9 +821,7 @@ export class LagrangeServer {
                 config?.mcpOption
             );
 
-            this.onUnmounted(c => {
-                transport.close();
-            });
+            this.onUnmounted(c => transport.close());
         }
     }
 

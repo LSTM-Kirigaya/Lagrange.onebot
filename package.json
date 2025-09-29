@@ -30,8 +30,10 @@
         "express": "^5.1.0",
         "figlet": "^1.9.3",
         "gradient-string": "^3.0.0",
+        "msgpackr": "^1.11.5",
         "node-schedule": "^2.1.1",
         "pm2": "^5.4.0",
+        "realm": "^20.2.0",
         "ws": "^8.17.0",
         "yaml": "^2.4.2"
     },
