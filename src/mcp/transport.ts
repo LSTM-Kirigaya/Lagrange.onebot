@@ -6,6 +6,8 @@ import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js"
 import express, { Request, Response } from 'express';
 import chalk from "chalk";
 import { Server } from "node:http";
+import { getLocalIP } from "../util/network";
+import { getGrad } from "../util/banner";
 
 
 export class McpTransport {
@@ -14,8 +16,9 @@ export class McpTransport {
     private expressServer?: Server;
 
     constructor(
-        private server: McpServer, // 解耦：外部传入工厂方法
-        private port: number = 3010
+        private readonly server: McpServer,
+        private readonly hostname: string = "localhost",
+        private readonly port: number = 3010
     ) {
         this.app.use(express.json());
         this.setupRoutes();
@@ -83,14 +86,32 @@ export class McpTransport {
     }
 
     public start() {
-        this.expressServer = this.app.listen(this.port, () => {
-            const url = `http://localhost:${this.port}/mcp`;
+        this.expressServer = this.app.listen(this.port, this.hostname, () => {
+            const url = `http://${this.hostname}:${this.port}/mcp`;
+
+            // 获取当前的局域网 IP 地址
+            const localIP = getLocalIP();
+
 
             console.log(
-                chalk.bold.cyan("🚀 MCP HTTP Server") +
-                " running at " +
-                chalk.green.underline(url)
+                "🚀 MCP HTTP Server" +
+                " running at"
             );
+
+            console.log(
+                "  🌐 Local   ➜  " +
+                chalk.gray(url)
+            );
+            
+            // 如果获取到了局域网IP，则也显示局域网访问地址
+            if (localIP) {
+                const networkUrl = `http://${localIP}:${this.port}/mcp`;
+                console.log(
+                    "  🌐 Network ➜  " +
+                    chalk.gray(this.hostname === "0.0.0.0" ? networkUrl : 'Not available')
+                );
+            }
+
         });
     }
 

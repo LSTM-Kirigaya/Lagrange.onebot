@@ -1,6 +1,11 @@
 import figlet from "figlet";
 import gradient from "gradient-string";
-import chalk from "chalk";
+
+export function getGrad(): ReturnType<typeof gradient> {
+    const grad = gradient(["#5fa4fa", "#8b5cf6", "#ff7ac6"]);
+
+    return grad;
+}
 
 /**
  * 打印启动 Banner
@@ -14,7 +19,7 @@ export function showBanner(text = "LAGRANGE.ONEBOT") {
     });
 
     // 渐变
-    const grad = gradient(["#5fa4fa", "#8b5cf6", "#ff7ac6"]);
+    const grad = getGrad();
 
     // 渐变大字
     const colored = banner
@@ -24,7 +29,7 @@ export function showBanner(text = "LAGRANGE.ONEBOT") {
 
     // 信息区（不要再套 gradient）
     const infoLines = [
-        grad("📦 GitHub: https://github.com/LSTM-Kirigaya/Lagrange.onebot   ⭐ 请帮我们点个 Star!"),
+        grad("📦 GitHub: https://github.com/LSTM-Kirigaya/Lagrange.onebot   ⭐ Star 滞销，帮帮我们！"),
         grad("📖 Docs:   https://document.kirigaya.cn/blogs/lagrange.onebot/main.html"),
     ];
 

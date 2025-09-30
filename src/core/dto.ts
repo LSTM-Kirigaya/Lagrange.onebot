@@ -18,11 +18,16 @@ export interface BackwardWebsocketLaunchOption extends CommonLaunchOption {
 export type LaunchOption = ForwardWebsocketLaunchOption | BackwardWebsocketLaunchOption;
 
 export interface McpLanchOption {
-    
-    host?: string;
-    
-    port?: number;
 
+    /**
+     * @description MCP 服务器的主机名，默认为 localhost
+     */
+    host?: string;
+
+    /**
+     * @description MCP 监听的端口，默认 3010
+     */
+    port?: number;
 
     /**
      * @description 是否启动 memory

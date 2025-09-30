@@ -39,12 +39,12 @@ export class RealmService {
             });
 
             console.log(
-                chalk.bold.cyan("📦 Realm Database ") + chalk.green("connected")
+                "📦 Realm Database " + chalk.green("connected")
             );
 
         } catch (error: any) {
             console.log(
-                chalk.bold.red("📦 Realm Database ") + chalk.red("connect failed")
+                "📦 Realm Database " + chalk.red("connect failed")
             );
 
             throw new Error(`无法打开Realm数据库: ${error.message}`);

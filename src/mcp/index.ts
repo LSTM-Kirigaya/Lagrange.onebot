@@ -213,9 +213,13 @@ export function createMcpServer(
     const mcpContainer = new LagrangeMcpManager(mcpServer, context);
     mcpContainer.register(option);
 
-    const transport = new McpTransport(mcpServer, option.port || 3010);
-    transport.start();
+    const {
+        host = "localhost",
+        port = 3010
+    } = option;
 
+    const transport = new McpTransport(mcpServer, host, port);
+    transport.start();
 
     return transport;
 }

@@ -1,7 +1,8 @@
 import WebSocket from 'ws';
 import * as fs from 'fs';
-import chalk from 'chalk';
 
+import chalk from 'chalk';
+import ora from 'ora';
 import { scheduleJob } from 'node-schedule';
 
 import { pipe, onMessage, onClose } from './event';
@@ -12,7 +13,7 @@ import type * as Lagrange from './type';
 import { GetRawTextConfig, ILaunchConfig, LaunchOption } from './dto';
 import path from 'path';
 import { createMcpServer } from '../mcp';
-import { showBanner } from '../util/banner';
+import { getGrad, showBanner } from '../util/banner';
 import { RealmService } from '../util/realm';
 
 
@@ -684,6 +685,12 @@ export class LagrangeServer {
 
     public async run(config: LaunchOption): Promise<void> {
         showBanner();
+        
+        const spinner = ora({
+            text: 'Lagrange.Onebot Server is starting...',
+            color: 'yellow',
+            spinner: 'dots',
+        }).start();
 
         this.config = config;
 
@@ -695,10 +702,13 @@ export class LagrangeServer {
                     }
                 });
                 await this.clientConnect(this.ws);
+
+                spinner.succeed(' Lagrange.Onebot Server started');
+
                 console.log(
-                    chalk.bold.cyan("🔗 Forward Websocket Server") +
+                    "🔗 Forward Websocket Server" +
                     " running at " +
-                    chalk.green.underline(`ws://${config.host}:${config.port}`)
+                    chalk.gray(`ws://${config.host}:${config.port}`)
                 );
 
                 break;
@@ -706,10 +716,12 @@ export class LagrangeServer {
                 const wsServer = new WebSocket.Server(config);
                 const ws = await this.serverConnect(wsServer);
 
+                spinner.succeed(' Lagrange.Onebot Server started');
+
                 console.log(
-                    chalk.bold.cyan("🔗 Listen Lagrange.Core Server") +
+                    "🔗 Listen Lagrange.Core Server" +
                     " at " +
-                    chalk.green.underline(`ws://${config.host}:${config.port}`)
+                    chalk.gray(`ws://${config.host}:${config.port}`)
                 );
 
                 this.wsServer = wsServer;
@@ -719,6 +731,8 @@ export class LagrangeServer {
                 throw new Error("Unknown connection type! ");
         }
 
+        
+
         const context = new LagrangeContext({ post_type: 'meta_event' });
 
         await context.getFriendList();
@@ -727,11 +741,13 @@ export class LagrangeServer {
         this.qq = loginInfo.data.user_id;
         this.nickname = loginInfo.data.nickname;
 
+        const grad = getGrad();
+
         console.log(
-            chalk.bold.cyan("🤖 Robot ") +
-            chalk.blue(this.qq) +
+            "🤖 Robot " +
+            grad(String(this.qq)) +
             " login in as " +
-            chalk.blue(this.nickname)
+            grad(this.nickname)
         );
 
         pipe.registerServer(this);
@@ -760,12 +776,19 @@ export class LagrangeServer {
             }
         });
 
-        process.on('SIGINT', () => {
+        process.on('SIGINT', async () => {
             // unmounted 周期
-            cycleCbMap.get('unmounted')?.forEach(cb => cb.call(this, new LagrangeContext({ post_type: 'meta_event' })));
+            const works = cycleCbMap.get('unmounted')?.map(cb => cb.call(this, new LagrangeContext({ post_type: 'meta_event' })));
+
+            if (works) {
+                await Promise.all(works);
+            }
 
             this.ws?.close();
             this.wsServer?.close();
+
+            // 退出
+            process.exit(0);
         });
     }
 
@@ -797,7 +820,7 @@ export class LagrangeServer {
             encryptionKey: undefined
         });
         await realmService.connect();
-        
+
         this.realmService = realmService;
         this.onUnmounted(c => realmService.close());
 
