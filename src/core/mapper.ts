@@ -299,9 +299,12 @@ class LagrangeMapper {
      */
     public onFileReceive(config?: OnFileReceiveConfig) {
         const _this = this;
-        config = config || { ignoreWarning: false };
+        const {
+            ignoreWarning = false
+        } = config || {};
+
         return function (target: any, propertyKey: string, descriptor: MapperDescriptor<FileReceiveInvoker>) {
-            if (_this.fileReceiveStorage.size > 0 && !config.ignoreWarning) {
+            if (_this.fileReceiveStorage.size > 0 && !ignoreWarning) {
                 logger.warning(`${propertyKey} -> 文件接受管线已经注册，如果你真的希望同时调用多个 onFileReceive，考虑使用 @onFileReceive({ ignoreWarning: true })`);
             }
             const invoker = descriptor.value;
@@ -334,9 +337,12 @@ class LagrangeMapper {
      */
     public onAddFriendOrGroup(config?: OnAddFriendOrGroupConfig) {
         const _this = this;
-        config = config || { ignoreWarning: false };
+        const {
+            ignoreWarning = false
+        } = config || {};
+
         return function (target: any, propertyKey: string, descriptor: MapperDescriptor<AddFriendOrGroupInvoker>) {
-            if (_this.addFriendOrGroupStorage.size > 0 && !config.ignoreWarning) {
+            if (_this.addFriendOrGroupStorage.size > 0 && !ignoreWarning) {
                 logger.warning(`${propertyKey} -> 加好友/加群接受管线已经注册，如果你真的希望同时调用多个 onAddFriendOrGroup，考虑使用 @onAddFriendOrGroup({ ignoreWarning: true })`);
             }
             const invoker = descriptor.value;
