@@ -7,7 +7,7 @@ import { DecodedMessage, MessageEntity, QueryMessageDto, QueryMessageItem, Realm
 import chalk from 'chalk';
 
 export class RealmService {
-    private realm: Realm | null = null;
+    public realm: Realm | null = null;
 
     constructor(
         private readonly realmConfig: RealmConfig
@@ -309,7 +309,7 @@ export class RealmService {
                 messageCount++;
             }
 
-            // exportData.users = userMap;
+            exportData.users = userMap;
             exportData.messageCount = messageCount;
             exportData.wordCount = wordCount;
 
