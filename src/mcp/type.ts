@@ -167,8 +167,8 @@ export const JSON = z.object({
 // 联合类型
 export const Default = z.union([
     Text,
-    Face,
-    Image,
+    // Face,
+    // Image,
     // Audio,
     // Video,
     At,
@@ -183,7 +183,7 @@ export const Default = z.union([
     // Location,
     // MusicShare,
     // CustomMusicShare,
-    Reply,
+    // Reply,
     // ForwardNode,
     // XML,
     // JSON

@@ -21,12 +21,16 @@ export class TestChannel {
 
     @mapper.onGroup(qq_groups.TEST_CHANNEL, { at: true })
     async handleTestGroup(c: LagrangeContext<GroupMessage>) {
-        const allGroupMemberInfo = await c.getGroupMemberList(qq_groups.TEST_CHANNEL);
-        console.log(allGroupMemberInfo);
+        console.log(c.message.message);
 
-        const user_id = c.message.user_id;
-        const user_info = await c.getStrangerInfo(user_id);
-        console.log(user_info);
+        const reply = c.message.message.filter(m => m.type === 'reply')[0];
+        if (reply) {
+            const res = await c.getMsg(parseInt(reply.data.id));
+            if (res instanceof Error) {
+                return;
+            }
+            console.log(JSON.stringify(res.data.message, null, 2));
+        }
     }
 
     @mapper.onAddFriendOrGroup()

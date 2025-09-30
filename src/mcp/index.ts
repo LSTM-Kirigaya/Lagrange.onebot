@@ -8,7 +8,7 @@ import { Default } from './type';
 import * as Tool from './tool';
 import * as ExtraTool from './extraTool';
 
-import { atMessagePrompt } from "./prompt";
+import { atMessagePrompt, atQueryPrompt } from "./prompt";
 import { McpLanchOption } from "../core/dto";
 import { McpTransport } from "./transport";
 
@@ -29,16 +29,39 @@ export class LagrangeMcpManager {
             {
                 description: '发送群消息',
                 inputSchema: {
-                    group_id: z.number().describe('群号'),
+                    groupId: z.number().describe('群号'),
                     message: z.array(Default).describe('要发送的内容')
                 },
             },
-            async ({ group_id, message }) => {
-                const responseText = await Tool.sendGroupMsg(context, group_id, message);
+            async ({ groupId, message }) => {
+                const responseText = await Tool.sendGroupMsg(context, groupId, message);
                 return {
                     content: [{ type: 'text', text: responseText }]
                 }
             });
+
+        // 发送图片
+        this.server.registerTool(
+            'qq_send_image',
+            {
+                description: '发送图片',
+                inputSchema: {
+                    groupId: z.number().describe('群号'),
+                    url: z.string().describe('图片的 url'),
+                },
+            },
+            async ({ groupId, url }) => {
+                const cqMessages = [{
+                    type: 'image',
+                    data: {
+                        file: url
+                    }
+                }] as Lagrange.Send.Default[];
+
+                const responseText = await Tool.sendGroupMsg(context, groupId, cqMessages);
+                return { content: [{ type: 'text', text: responseText }]}
+            }
+        )
 
         // 获取群信息
         this.server.registerTool(
@@ -46,11 +69,11 @@ export class LagrangeMcpManager {
             {
                 description: '获取群信息',
                 inputSchema: {
-                    group_id: z.number().describe('群号')
+                    groupId: z.number().describe('群号')
                 }
             },
-            async ({ group_id }) => {
-                const responseText = await Tool.getGroupInfo(context, group_id);
+            async ({ groupId }) => {
+                const responseText = await Tool.getGroupInfo(context, groupId);
                 return { content: [{ type: 'text', text: responseText }] };
             }
         );
@@ -61,11 +84,11 @@ export class LagrangeMcpManager {
             {
                 description: '获取群成员列表',
                 inputSchema: {
-                    group_id: z.number().describe('群号'),
+                    groupId: z.number().describe('群号'),
                 },
             },
-            async ({ group_id }) => {
-                const responseText = await Tool.getGroupMemberList(context, group_id);
+            async ({ groupId }) => {
+                const responseText = await Tool.getGroupMemberList(context, groupId);
                 return { content: [{ type: 'text', text: responseText }] };
             }
         );
@@ -76,12 +99,12 @@ export class LagrangeMcpManager {
             {
                 description: '获取群成员信息',
                 inputSchema: {
-                    group_id: z.number().describe('群号'),
+                    groupId: z.number().describe('群号'),
                     user_id: z.number().describe('用户 QQ 号'),
                 },
             },
-            async ({ group_id, user_id }) => {
-                const responseText = await Tool.getGroupMemberInfo(context, group_id, user_id);
+            async ({ groupId, user_id }) => {
+                const responseText = await Tool.getGroupMemberInfo(context, groupId, user_id);
                 return { content: [{ type: 'text', text: responseText }] };
             }
         );
@@ -92,13 +115,13 @@ export class LagrangeMcpManager {
             {
                 description: '上传群文件',
                 inputSchema: {
-                    group_id: z.number().describe('群号'),
+                    groupId: z.number().describe('群号'),
                     file: z.string().describe('文件绝对路径'),
                     name: z.string().describe('文件名称'),
                 },
             },
-            async ({ group_id, file, name }) => {
-                const responseText = await Tool.uploadGroupFile(context, group_id, file, name);
+            async ({ groupId, file, name }) => {
+                const responseText = await Tool.uploadGroupFile(context, groupId, file, name);
                 return { content: [{ type: 'text', text: responseText }] };
             }
         );
@@ -109,12 +132,12 @@ export class LagrangeMcpManager {
             {
                 description: '发送群公告',
                 inputSchema: {
-                    group_id: z.number().describe('群号'),
+                    groupId: z.number().describe('群号'),
                     content: z.string().describe('公告内容'),
                 },
             },
-            async ({ group_id, content }) => {
-                const responseText = await Tool.sendGroupNotice(context, group_id, content);
+            async ({ groupId, content }) => {
+                const responseText = await Tool.sendGroupNotice(context, groupId, content);
                 return { content: [{ type: 'text', text: responseText }] };
             }
         );
@@ -123,14 +146,14 @@ export class LagrangeMcpManager {
         this.server.registerTool(
             "qq_get_latest_messages",
             {
-                description: "当用户发送消息时的输入",
+                description: "获取最近的若干条群聊消息",
                 inputSchema: {
-                    group_id: z.number().describe('群号'),
+                    groupId: z.number().describe('群号'),
                     messageCount: z.number().describe('获取最近几条消息'),
                 },
             },
-            async ({ group_id, messageCount }) => {
-                const responseText = await Tool.getLatestMessages(context, group_id, messageCount);
+            async ({ groupId, messageCount }) => {
+                const responseText = await Tool.getLatestMessages(context, groupId, messageCount);
                 return { content: [{ type: 'text', text: responseText }] };
             }
         );
@@ -140,21 +163,41 @@ export class LagrangeMcpManager {
         this.server.registerPrompt(
             "at-message",
             {
-                description: "当用户 @ 你时的输入",
+                description: "当用户 @ 你时的 system prompt",
                 argsSchema: {
-                    group_id: z.string().describe('群号')
+                    groupId: z.string().describe('群号')
                 }
             },
-            async ({ group_id }) => ({
+            async ({ groupId }) => ({
                 messages: [{
                     role: "user",
                     content: {
                         type: "text",
-                        text: await atMessagePrompt(context, parseInt(group_id))
+                        text: await atMessagePrompt(context, parseInt(groupId))
                     }
                 }]
             })
         );
+
+        this.server.registerPrompt(
+            "at-query",
+            {
+                description: "当用户 @ 你时的 query prompt",
+                argsSchema: {
+                    content: z.string().describe('查询内容'),
+                    reference: z.string().optional().describe('参考内容'),
+                }
+            },
+            async ({ content, reference = '无' }) => ({
+                messages: [{
+                    role: "user",
+                    content: {
+                        type: "text",
+                        text: await atQueryPrompt(content, reference)
+                    }
+                }]
+            })
+        )
 
     }
 

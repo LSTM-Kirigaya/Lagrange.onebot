@@ -776,6 +776,9 @@ export class LagrangeServer {
             }
         });
 
+        // 展示 mapper 中激活的控制器
+        await lagrangeMapper.showRegisterControllers(context);
+
         process.on('SIGINT', async () => {
             // unmounted 周期
             const works = cycleCbMap.get('unmounted')?.map(cb => cb.call(this, new LagrangeContext({ post_type: 'meta_event' })));

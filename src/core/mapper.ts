@@ -1,6 +1,7 @@
 import { handleAutoDownloadImage, logger, SizedQueue } from '../util';
 import type * as Lagrange from './type';
 import type { LagrangeContext } from './context';
+import { getGrad } from '../util/banner';
 
 export type MessageInvoker<T extends Lagrange.Message> = (context: LagrangeContext<T>) => Lagrange.Thenable<undefined | void | string | Lagrange.Send.Default>;
 export type PrivateUserInvoker = MessageInvoker<Lagrange.PrivateMessage>;
@@ -93,6 +94,34 @@ class LagrangeMapper {
         return this._memoryStorage;
     }
 
+
+    public async showRegisterControllers(c: LagrangeContext<Lagrange.Message>) {
+        const grad = getGrad();
+        console.log();
+        
+        for (const [id, storage] of this.groupStorage) {
+            const res = await c.getGroupInfo(id) as Lagrange.CommonResponse<Lagrange.GetGroupInfoResponse>;
+
+            console.log(
+                'Activate ' +
+                grad(id + '') +
+                " as Group"
+            );
+        }
+
+        for (const [id, storage] of this.privateUserStorage) {
+            const res = await c.getStrangerInfo(id) as Lagrange.CommonResponse<Lagrange.GetStrangerInfoResponse>;
+            
+            console.log(
+                'Activate ' +
+                grad(id + '') +
+                " as User "
+            );
+        }
+        console.log();
+
+    }
+    
     public async resolvePrivateUser(c: LagrangeContext<Lagrange.PrivateMessage>) {
         
         const user_id = c.message.user_id;
@@ -136,7 +165,6 @@ class LagrangeMapper {
             } = groupStorage.config || {};
 
             const msg = c.message;
-            const firstSegment = msg.message[0];
             const robotQQ = c.qq + '';
 
             // 如果需要下载图片，则下载
@@ -158,11 +186,12 @@ class LagrangeMapper {
             }
 
             // 添加守卫：如果不是 at 机器人，则退出
-            const validAt = Boolean(firstSegment.type === 'at' && firstSegment.data.qq === robotQQ);
+            const validAt = msg.message.some(seg => seg.type === 'at' && seg.data.qq === robotQQ);
+            
             if (at) {
                 if (validAt) {
-                    msg.message = msg.message.slice(1);
-                    msg.raw_message = msg.raw_message.substring(11 + robotQQ.length);
+                    // msg.message = msg.message.slice(1);
+                    // msg.raw_message = msg.raw_message.substring(11 + robotQQ.length);
                 } else {
                     return;
                 }
