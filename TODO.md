@@ -1,0 +1,2 @@
+- [ ] 留下必要的 logger，格式：【时间】+【action】+【状态】
+- [ ] 彻底解决 realm 数据库访问冲突的问题（unreachable stack）

@@ -1,3 +1,5 @@
+
+import path from 'path';
 import { LagrangeFactory } from '..';
 import { qq_users } from './global';
 import { TestChannel } from './test-channel';
@@ -11,7 +13,10 @@ server.onMounted(c => {
 });
 
 server.launch({
-    configPath: '/home/kirigaya/project/Lagrange.RagBot/node/Lagrange.Core/appsettings.json',
+    configPath: path.join(
+        process.env['LAGRANGE_CORE_HOME'] || '',
+        'appsettings.json'
+    ),
     mcp: true,
     mcpOption: {
         enableMemory: true,

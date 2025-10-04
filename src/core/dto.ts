@@ -48,6 +48,11 @@ export interface ILaunchConfig {
     configPath?: string
 
     /**
+     * @description 是否启动日志
+     */
+    logger?: boolean
+
+    /**
      * @description 数据库文件夹，默认为 lagrange-0-db
      */
     db?: string
