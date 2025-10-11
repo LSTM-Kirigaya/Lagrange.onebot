@@ -59,7 +59,7 @@ export class LagrangeMcpManager {
                 }] as Lagrange.Send.Default[];
 
                 const responseText = await Tool.sendGroupMsg(context, groupId, cqMessages);
-                return { content: [{ type: 'text', text: responseText }]}
+                return { content: [{ type: 'text', text: responseText }] }
             }
         )
 
@@ -223,7 +223,53 @@ export class LagrangeMcpManager {
 
     public registerMemory() {
         // rag
+        this.server.registerTool(
+            'util_add_memory',
+            {
+                description: '添加记忆',
+                inputSchema: {
+                    content: z.array(z.string()).describe('需要记忆的内容'),
+                    namespace: z.array(z.string()).optional().describe('命名空间，例如不同的用户id，这样可以区分不同用户的记忆（可选）'),
+                    key: z.string().optional().describe('记忆的唯一标识（可选）'),
+                },
+            },
+            async ({ content, namespace, key }) => {
+                const responseText = await ExtraTool.addMemory(content, namespace, key);
+                return { content: [{ type: 'text', text: responseText }] };
+            }
+        );
 
+        this.server.registerTool(
+            'util_update_memory',
+            {
+                description: '更新记忆',
+                inputSchema: {
+                    namespace: z.string().describe('命名空间'),
+                    key: z.string().describe('记忆的唯一标识'),
+                    content: z.array(z.string()).describe('需要记忆的内容'),
+                },
+            },
+            async ({ namespace, key, content }) => {
+                const responseText = await ExtraTool.updateMemory(namespace, key, content);
+                return { content: [{ type: 'text', text: responseText }] };
+            }
+        );
+
+
+        this.server.registerTool(
+            'util_search_memory',
+            {
+                description: '查询记忆',
+                inputSchema: {
+                    query: z.string().describe('搜索的关键字'),
+                    namespaces: z.array(z.string()).optional().describe('命名空间，例如不同的用户id，这样可以区分不同用户的记忆（可选）'),
+                },
+            },
+            async ({ namespaces, query }) => {
+                const responseText = await ExtraTool.queryMemory(query, namespaces);
+                return { content: [{ type: 'text', text: responseText }] };
+            }
+        );
     }
 
     public register(option: McpLanchOption) {
