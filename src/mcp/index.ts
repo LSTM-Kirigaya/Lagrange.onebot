@@ -226,15 +226,15 @@ export class LagrangeMcpManager {
         this.server.registerTool(
             'util_add_memory',
             {
-                description: '添加记忆',
+                description: '将重要信息添加到长期记忆中。当用户分享关于自己、他人、事件的重要信息时(例如:姓名、喜好、经历、关系等),应该主动使用此工具记录,以便后续对话中查询使用。',
                 inputSchema: {
-                    content: z.array(z.string()).describe('需要记忆的内容'),
-                    namespace: z.array(z.string()).optional().describe('命名空间，例如不同的用户id，这样可以区分不同用户的记忆（可选）'),
+                    content: z.array(z.string()).describe('需要记忆的内容,每条信息应该是完整、清晰的描述'),
+                    groupId: z.string().describe('群号，如果你不知道群号是什么，使用default'),
                     key: z.string().optional().describe('记忆的唯一标识（可选）'),
                 },
             },
-            async ({ content, namespace, key }) => {
-                const responseText = await ExtraTool.addMemory(content, namespace, key);
+            async ({ content, groupId, key }) => {
+                const responseText = await ExtraTool.addMemory(content, [groupId], key);
                 return { content: [{ type: 'text', text: responseText }] };
             }
         );
@@ -244,13 +244,13 @@ export class LagrangeMcpManager {
             {
                 description: '更新记忆',
                 inputSchema: {
-                    namespace: z.string().describe('命名空间'),
+                    groupId: z.string().describe('群号，如果你不知道群号是什么，使用default'),
                     key: z.string().describe('记忆的唯一标识'),
                     content: z.array(z.string()).describe('需要记忆的内容'),
                 },
             },
-            async ({ namespace, key, content }) => {
-                const responseText = await ExtraTool.updateMemory(namespace, key, content);
+            async ({ groupId, key, content }) => {
+                const responseText = await ExtraTool.updateMemory(groupId, key, content);
                 return { content: [{ type: 'text', text: responseText }] };
             }
         );
@@ -259,14 +259,14 @@ export class LagrangeMcpManager {
         this.server.registerTool(
             'util_search_memory',
             {
-                description: '查询记忆',
+                description: '从长期记忆中查询信息。当用户询问关于特定人物、事件、或之前对话中提到的信息时,应该首先使用此工具搜索相关记忆。例如:用户问"XXX是谁"、"XXX喜欢什么"、"上次说的那件事"等问题时,必须先调用此工具查询。',
                 inputSchema: {
-                    query: z.string().describe('搜索的关键字'),
-                    namespaces: z.array(z.string()).optional().describe('命名空间，例如不同的用户id，这样可以区分不同用户的记忆（可选）'),
+                    query: z.string().describe('搜索的关键字,可以是人名、事件名、或相关描述'),
+                    groupId: z.string().describe('群号，如果你不知道群号是什么，使用default'),
                 },
             },
-            async ({ namespaces, query }) => {
-                const responseText = await ExtraTool.queryMemory(query, namespaces);
+            async ({ groupId, query }) => {
+                const responseText = await ExtraTool.queryMemory(query, [groupId]);
                 return { content: [{ type: 'text', text: responseText }] };
             }
         );

@@ -74,7 +74,17 @@ export async function queryMemory( query: string,namespaces?: string[]): Promise
     try {
          const finalNamespaces = (namespaces && namespaces.length) ? namespaces : ['default'];
         const result = await store.search(finalNamespaces, { query: query, limit: 5 });
-        return result.map(item => item.value).flat().join("\n");
+        
+        if (result.length === 0) {
+            return `未找到与"${query}"相关的记忆`;
+        }
+        
+        return `找到 ${result.length} 条相关记忆:\n` + 
+            result.map((item, index) => {
+                const content = Array.isArray(item.value) ? item.value.join(" ") : item.value;
+                const namespace = item.namespace.join('/');
+                return `${index + 1}. [namespace: ${namespace}, key: ${item.key}]\n   内容: ${content}`;
+            }).join("\n\n");
     } catch (err) {
         throw new Error(
             `无法执行 queryMemory: \n${(err as Error).message}`
