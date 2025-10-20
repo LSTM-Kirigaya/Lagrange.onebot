@@ -59,7 +59,7 @@ export class LagrangeMcpManager {
                 }] as Lagrange.Send.Default[];
 
                 const responseText = await Tool.sendGroupMsg(context, groupId, cqMessages);
-                return { content: [{ type: 'text', text: responseText }]}
+                return { content: [{ type: 'text', text: responseText }] }
             }
         )
 
@@ -223,7 +223,53 @@ export class LagrangeMcpManager {
 
     public registerMemory() {
         // rag
+        this.server.registerTool(
+            'util_add_memory',
+            {
+                description: '将重要信息添加到长期记忆中。当用户分享关于自己、他人、事件的重要信息时(例如:姓名、喜好、经历、关系等),应该主动使用此工具记录,以便后续对话中查询使用。',
+                inputSchema: {
+                    content: z.array(z.string()).describe('需要记忆的内容,每条信息应该是完整、清晰的描述'),
+                    groupId: z.string().describe('群号，如果你不知道群号是什么，使用default'),
+                    key: z.string().optional().describe('记忆的唯一标识（可选）'),
+                },
+            },
+            async ({ content, groupId, key }) => {
+                const responseText = await ExtraTool.addMemory(content, [groupId], key);
+                return { content: [{ type: 'text', text: responseText }] };
+            }
+        );
 
+        this.server.registerTool(
+            'util_update_memory',
+            {
+                description: '更新记忆',
+                inputSchema: {
+                    groupId: z.string().describe('群号，如果你不知道群号是什么，使用default'),
+                    key: z.string().describe('记忆的唯一标识'),
+                    content: z.array(z.string()).describe('需要记忆的内容'),
+                },
+            },
+            async ({ groupId, key, content }) => {
+                const responseText = await ExtraTool.updateMemory(groupId, key, content);
+                return { content: [{ type: 'text', text: responseText }] };
+            }
+        );
+
+
+        this.server.registerTool(
+            'util_search_memory',
+            {
+                description: '从长期记忆中查询信息。当用户询问关于特定人物、事件、或之前对话中提到的信息时,应该首先使用此工具搜索相关记忆。例如:用户问"XXX是谁"、"XXX喜欢什么"、"上次说的那件事"等问题时,必须先调用此工具查询。',
+                inputSchema: {
+                    query: z.string().describe('搜索的关键字,可以是人名、事件名、或相关描述'),
+                    groupId: z.string().describe('群号，如果你不知道群号是什么，使用default'),
+                },
+            },
+            async ({ groupId, query }) => {
+                const responseText = await ExtraTool.queryMemory(query, [groupId]);
+                return { content: [{ type: 'text', text: responseText }] };
+            }
+        );
     }
 
     public register(option: McpLanchOption) {

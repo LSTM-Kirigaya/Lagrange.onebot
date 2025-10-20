@@ -44,6 +44,13 @@ export async function atMessagePrompt(
 对于文中 jpeg, png, webp 等结尾的图片格式，请不要通过 util_websearch 再次搜索了，如果这个链接周围有和本次回答相关的文本，你应该通过 \`qq_send_message\` 的 image 类型发送图片。
 </WEBSERACH>
 
+<MEMORY>
+你拥有长期记忆能力，可以记住群友的信息和重要对话内容：
+1. 当用户询问关于特定人物、事件或之前提到的信息时(如"XXX是谁"、"XXX喜欢什么")，你必须首先使用 \`util_search_memory\` 工具查询记忆。
+2. 当用户分享重要信息时(如自我介绍、个人喜好、重要事件等)，你应该主动使用 \`util_add_memory\` 工具记录，以便后续查询。
+3. 记忆查询应该是你回答未知问题前的第一步操作。
+</MEMORY>
+
 <EXAMPLES>
 ✅「群公告已更新，请查收。」
 ✅「该文件无法上传，原因是路径不存在。」

@@ -1,6 +1,6 @@
 {
-  "clientId": "bb02a5a0-a5a0-52a5a0f7132-82a5a0f7132af59-2af5955b",
-  "currentIndex": 0,
+  "clientId": "05fa4526-4526-5a45269cb58-8a45269cb586798-86798136",
+  "currentIndex": 4,
   "tabs": [
     {
       "name": "提词",
@@ -12,10 +12,1190 @@
           0
         ],
         "formData": {
-          "groupId": "123"
+          "groupId": ""
         },
-        "currentPromptName": "at-message",
-        "lastPromptGetResponse": "McpError: MCP error -32603: Cannot read properties of null (reading 'group_id')"
+        "currentPromptName": "at-message"
+      }
+    },
+    {
+      "name": "工具",
+      "icon": "icon-tool",
+      "type": "blank",
+      "componentIndex": 2,
+      "storage": {
+        "activeNames": [
+          0
+        ],
+        "autoDetectDiagram": {
+          "edges": [],
+          "views": []
+        },
+        "formData": {
+          "query": "黄哲龙",
+          "groupId": ""
+        },
+        "currentToolName": "util_search_memory",
+        "lastToolCallResponse": {
+          "content": [
+            {
+              "type": "text",
+              "text": "找到 1 条相关记忆:\n1. 黄哲龙是中国科学技术大学（中科大）的研究生 黄哲龙拥有\"天下无人\"的技术"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "交互测试",
+      "icon": "icon-robot",
+      "type": "blank",
+      "componentIndex": 3,
+      "storage": {
+        "activeNames": [
+          0
+        ],
+        "messages": [
+          {
+            "role": "user",
+            "content": "黄哲龙是谁？",
+            "extraInfo": {
+              "created": 1760198674563,
+              "state": "success",
+              "serverName": "deepseek",
+              "enableXmlWrapper": false
+            }
+          }
+        ],
+        "parallelMode": false,
+        "parallelChats": [],
+        "selectedModels": [],
+        "settings": {
+          "modelIndex": 0,
+          "enableTools": [
+            {
+              "name": "qq_send_message",
+              "description": "发送群消息",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "number",
+                    "description": "群号"
+                  },
+                  "message": {
+                    "type": "array",
+                    "description": "要发送的内容",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string"
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "text": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "text"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "data"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "groupId",
+                  "message"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "qq_send_image",
+              "description": "发送图片",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "number",
+                    "description": "群号"
+                  },
+                  "url": {
+                    "type": "string",
+                    "description": "图片的 url"
+                  }
+                },
+                "required": [
+                  "groupId",
+                  "url"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "qq_get_group_info",
+              "description": "获取群信息",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "number",
+                    "description": "群号"
+                  }
+                },
+                "required": [
+                  "groupId"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "qq_get_group_member_list",
+              "description": "获取群成员列表",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "number",
+                    "description": "群号"
+                  }
+                },
+                "required": [
+                  "groupId"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "qq_get_group_member_info",
+              "description": "获取群成员信息",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "number",
+                    "description": "群号"
+                  },
+                  "user_id": {
+                    "type": "number",
+                    "description": "用户 QQ 号"
+                  }
+                },
+                "required": [
+                  "groupId",
+                  "user_id"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "qq_upload_group_file",
+              "description": "上传群文件",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "number",
+                    "description": "群号"
+                  },
+                  "file": {
+                    "type": "string",
+                    "description": "文件绝对路径"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "文件名称"
+                  }
+                },
+                "required": [
+                  "groupId",
+                  "file",
+                  "name"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "qq_send_group_notice",
+              "description": "发送群公告",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "number",
+                    "description": "群号"
+                  },
+                  "content": {
+                    "type": "string",
+                    "description": "公告内容"
+                  }
+                },
+                "required": [
+                  "groupId",
+                  "content"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "qq_get_latest_messages",
+              "description": "获取最近的若干条群聊消息",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "number",
+                    "description": "群号"
+                  },
+                  "messageCount": {
+                    "type": "number",
+                    "description": "获取最近几条消息"
+                  }
+                },
+                "required": [
+                  "groupId",
+                  "messageCount"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "util_add_memory",
+              "description": "将重要信息添加到长期记忆中。当用户分享关于自己、他人、事件的重要信息时(例如:姓名、喜好、经历、关系等),应该主动使用此工具记录,以便后续对话中查询使用。",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "type": "array",
+                    "description": "需要记忆的内容,每条信息应该是完整、清晰的描述",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "groupId": {
+                    "type": "string",
+                    "description": "群号，如果你不知道群号是什么，使用default"
+                  },
+                  "key": {
+                    "type": "string",
+                    "description": "记忆的唯一标识（可选）"
+                  }
+                },
+                "required": [
+                  "content",
+                  "groupId"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "util_update_memory",
+              "description": "更新记忆",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "string",
+                    "description": "群号，如果你不知道群号是什么，使用default"
+                  },
+                  "key": {
+                    "type": "string",
+                    "description": "记忆的唯一标识"
+                  },
+                  "content": {
+                    "type": "array",
+                    "description": "需要记忆的内容",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "groupId",
+                  "key",
+                  "content"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "util_search_memory",
+              "description": "从长期记忆中查询信息。当用户询问关于特定人物、事件、或之前对话中提到的信息时,应该首先使用此工具搜索相关记忆。例如:用户问\"XXX是谁\"、\"XXX喜欢什么\"、\"上次说的那件事\"等问题时,必须先调用此工具查询。",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "string",
+                    "description": "搜索的关键字,可以是人名、事件名、或相关描述"
+                  },
+                  "groupId": {
+                    "type": "string",
+                    "description": "群号，如果你不知道群号是什么，使用default"
+                  }
+                },
+                "required": [
+                  "query",
+                  "groupId"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "util_websearch",
+              "description": "获取网页内容",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "description": "url"
+                  }
+                },
+                "required": [
+                  "url"
+                ]
+              },
+              "enabled": true
+            }
+          ],
+          "enableWebSearch": false,
+          "temperature": 0.6,
+          "contextLength": 100,
+          "systemPrompt": "",
+          "enableXmlWrapper": false,
+          "parallelToolCalls": true
+        }
+      }
+    },
+    {
+      "name": "交互测试",
+      "icon": "icon-robot",
+      "type": "blank",
+      "componentIndex": 3,
+      "storage": {
+        "activeNames": [
+          0
+        ],
+        "messages": [
+          {
+            "role": "user",
+            "content": "祖元琨是谁？",
+            "extraInfo": {
+              "created": 1760201778542,
+              "state": "success",
+              "serverName": "deepseek",
+              "enableXmlWrapper": false
+            }
+          },
+          {
+            "role": "assistant",
+            "content": "目前我无法直接查询到关于\"祖元琨\"的具体信息。要了解这个人物的详细情况，您可能需要：\n\n1. 提供更多背景信息，比如您是在什么情况下听到这个名字的\n2. 通过其他渠道搜索相关信息\n3. 如果这是您认识的人，您可以告诉我一些关于他的基本情况，我可以帮您记录下来\n\n如果您能提供更多上下文，我会尽力为您提供帮助。",
+            "extraInfo": {
+              "created": 1760201783602,
+              "state": "success",
+              "serverName": "deepseek",
+              "usage": {
+                "prompt_tokens": 1172,
+                "completion_tokens": 85,
+                "total_tokens": 1257,
+                "prompt_tokens_details": {
+                  "cached_tokens": 1152
+                },
+                "prompt_cache_hit_tokens": 1152,
+                "prompt_cache_miss_tokens": 20
+              },
+              "enableXmlWrapper": false
+            }
+          },
+          {
+            "role": "user",
+            "content": "当前群号：123456    祖元琨是东南大学的研究生，他拥有天下无敌的头脑和技术，硕士发了一百多篇顶会论文\r\n",
+            "extraInfo": {
+              "created": 1760201791527,
+              "state": "success",
+              "serverName": "deepseek",
+              "enableXmlWrapper": false
+            }
+          },
+          {
+            "role": "assistant",
+            "content": "我了解了！祖元琨是东南大学的研究生，拥有非常出色的学术能力，硕士期间发表了一百多篇顶会论文，头脑和技术都很厉害。让我把这个重要信息记录下来。",
+            "tool_calls": [
+              {
+                "id": "call_00_VJ1u9VDuxJgXj5gb0j0TB358",
+                "index": 0,
+                "type": "function",
+                "function": {
+                  "name": "util_add_memory",
+                  "arguments": "{\"groupId\": \"123456\", \"content\": [\"祖元琨是东南大学的研究生\", \"他拥有天下无敌的头脑和技术\", \"硕士期间发表了一百多篇顶会论文\"]}"
+                }
+              }
+            ],
+            "extraInfo": {
+              "created": 1760201796773,
+              "state": "success",
+              "serverName": "deepseek",
+              "enableXmlWrapper": false
+            }
+          },
+          {
+            "role": "tool",
+            "index": 0,
+            "tool_call_id": "call_00_VJ1u9VDuxJgXj5gb0j0TB358",
+            "content": [
+              {
+                "type": "text",
+                "text": "记忆添加成功"
+              }
+            ],
+            "extraInfo": {
+              "created": 1760201796785,
+              "state": "success",
+              "serverName": "deepseek",
+              "usage": {
+                "prompt_tokens": 1297,
+                "completion_tokens": 93,
+                "total_tokens": 1390,
+                "prompt_tokens_details": {
+                  "cached_tokens": 1216
+                },
+                "prompt_cache_hit_tokens": 1216,
+                "prompt_cache_miss_tokens": 81
+              },
+              "enableXmlWrapper": false
+            }
+          },
+          {
+            "role": "assistant",
+            "content": "已经成功记录了祖元琨的信息！现在我知道在123456这个群里，祖元琨是东南大学的研究生，学术成就非常突出，硕士期间就发表了一百多篇顶会论文，确实是非常厉害的人才。\n\n这些信息已经保存在长期记忆中，以后在群里提到祖元琨时，我就能更好地理解他的背景了。",
+            "extraInfo": {
+              "created": 1760201801996,
+              "state": "success",
+              "serverName": "deepseek",
+              "usage": {
+                "prompt_tokens": 1406,
+                "completion_tokens": 74,
+                "total_tokens": 1480,
+                "prompt_tokens_details": {
+                  "cached_tokens": 1344
+                },
+                "prompt_cache_hit_tokens": 1344,
+                "prompt_cache_miss_tokens": 62
+              },
+              "enableXmlWrapper": false
+            }
+          }
+        ],
+        "parallelMode": false,
+        "parallelChats": [],
+        "selectedModels": [],
+        "settings": {
+          "modelIndex": 0,
+          "enableTools": [
+            {
+              "name": "qq_send_message",
+              "description": "发送群消息",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "number",
+                    "description": "群号"
+                  },
+                  "message": {
+                    "type": "array",
+                    "description": "要发送的内容",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string"
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "text": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "text"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "data"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "groupId",
+                  "message"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "qq_send_image",
+              "description": "发送图片",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "number",
+                    "description": "群号"
+                  },
+                  "url": {
+                    "type": "string",
+                    "description": "图片的 url"
+                  }
+                },
+                "required": [
+                  "groupId",
+                  "url"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "qq_get_group_info",
+              "description": "获取群信息",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "number",
+                    "description": "群号"
+                  }
+                },
+                "required": [
+                  "groupId"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "qq_get_group_member_list",
+              "description": "获取群成员列表",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "number",
+                    "description": "群号"
+                  }
+                },
+                "required": [
+                  "groupId"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "qq_get_group_member_info",
+              "description": "获取群成员信息",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "number",
+                    "description": "群号"
+                  },
+                  "user_id": {
+                    "type": "number",
+                    "description": "用户 QQ 号"
+                  }
+                },
+                "required": [
+                  "groupId",
+                  "user_id"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "qq_upload_group_file",
+              "description": "上传群文件",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "number",
+                    "description": "群号"
+                  },
+                  "file": {
+                    "type": "string",
+                    "description": "文件绝对路径"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "文件名称"
+                  }
+                },
+                "required": [
+                  "groupId",
+                  "file",
+                  "name"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "qq_send_group_notice",
+              "description": "发送群公告",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "number",
+                    "description": "群号"
+                  },
+                  "content": {
+                    "type": "string",
+                    "description": "公告内容"
+                  }
+                },
+                "required": [
+                  "groupId",
+                  "content"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "qq_get_latest_messages",
+              "description": "获取最近的若干条群聊消息",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "number",
+                    "description": "群号"
+                  },
+                  "messageCount": {
+                    "type": "number",
+                    "description": "获取最近几条消息"
+                  }
+                },
+                "required": [
+                  "groupId",
+                  "messageCount"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "util_add_memory",
+              "description": "将重要信息添加到长期记忆中。当用户分享关于自己、他人、事件的重要信息时(例如:姓名、喜好、经历、关系等),应该主动使用此工具记录,以便后续对话中查询使用。",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "type": "array",
+                    "description": "需要记忆的内容,每条信息应该是完整、清晰的描述",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "groupId": {
+                    "type": "string",
+                    "description": "群号，如果你不知道群号是什么，使用default"
+                  },
+                  "key": {
+                    "type": "string",
+                    "description": "记忆的唯一标识（可选）"
+                  }
+                },
+                "required": [
+                  "content",
+                  "groupId"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "util_update_memory",
+              "description": "更新记忆",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "string",
+                    "description": "群号，如果你不知道群号是什么，使用default"
+                  },
+                  "key": {
+                    "type": "string",
+                    "description": "记忆的唯一标识"
+                  },
+                  "content": {
+                    "type": "array",
+                    "description": "需要记忆的内容",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "groupId",
+                  "key",
+                  "content"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "util_search_memory",
+              "description": "从长期记忆中查询信息。当用户询问关于特定人物、事件、或之前对话中提到的信息时,应该首先使用此工具搜索相关记忆。例如:用户问\"XXX是谁\"、\"XXX喜欢什么\"、\"上次说的那件事\"等问题时,必须先调用此工具查询。",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "string",
+                    "description": "搜索的关键字,可以是人名、事件名、或相关描述"
+                  },
+                  "groupId": {
+                    "type": "string",
+                    "description": "群号，如果你不知道群号是什么，使用default"
+                  }
+                },
+                "required": [
+                  "query",
+                  "groupId"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "util_websearch",
+              "description": "获取网页内容",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "description": "url"
+                  }
+                },
+                "required": [
+                  "url"
+                ]
+              },
+              "enabled": true
+            }
+          ],
+          "enableWebSearch": false,
+          "temperature": 0.6,
+          "contextLength": 100,
+          "systemPrompt": "",
+          "enableXmlWrapper": false,
+          "parallelToolCalls": true
+        }
+      }
+    },
+    {
+      "name": "交互测试",
+      "icon": "icon-robot",
+      "type": "blank",
+      "componentIndex": 3,
+      "storage": {
+        "activeNames": [
+          0
+        ],
+        "messages": [
+          {
+            "role": "user",
+            "content": "当前群号：123456  祖元琨是谁？",
+            "extraInfo": {
+              "created": 1760201820814,
+              "state": "success",
+              "serverName": "deepseek",
+              "enableXmlWrapper": false
+            }
+          },
+          {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+              {
+                "id": "call_00_JlvhpDYICZtMqJtRkwtDcnox",
+                "index": 0,
+                "type": "function",
+                "function": {
+                  "name": "util_search_memory",
+                  "arguments": "{\"query\": \"祖元琨\", \"groupId\": \"123456\"}"
+                }
+              }
+            ],
+            "extraInfo": {
+              "created": 1760201823377,
+              "state": "success",
+              "serverName": "deepseek",
+              "enableXmlWrapper": false
+            }
+          },
+          {
+            "role": "tool",
+            "index": 0,
+            "tool_call_id": "call_00_JlvhpDYICZtMqJtRkwtDcnox",
+            "content": [
+              {
+                "type": "text",
+                "text": "找到 1 条相关记忆:\n1. [namespace: 123456, key: 715b31f6-0fab-493e-954e-bd2e657058c1]\n   内容: 祖元琨是东南大学的研究生 他拥有天下无敌的头脑和技术 硕士期间发表了一百多篇顶会论文"
+              }
+            ],
+            "extraInfo": {
+              "created": 1760201823385,
+              "state": "success",
+              "serverName": "deepseek",
+              "usage": {
+                "prompt_tokens": 1179,
+                "completion_tokens": 25,
+                "total_tokens": 1204,
+                "prompt_tokens_details": {
+                  "cached_tokens": 1152
+                },
+                "prompt_cache_hit_tokens": 1152,
+                "prompt_cache_miss_tokens": 27
+              },
+              "enableXmlWrapper": false
+            }
+          },
+          {
+            "role": "assistant",
+            "content": "根据我的记忆记录，祖元琨是东南大学的研究生，拥有天下无敌的头脑和技术，在硕士期间发表了一百多篇顶会论文。",
+            "extraInfo": {
+              "created": 1760201826243,
+              "state": "success",
+              "serverName": "deepseek",
+              "usage": {
+                "prompt_tokens": 1294,
+                "completion_tokens": 34,
+                "total_tokens": 1328,
+                "prompt_tokens_details": {
+                  "cached_tokens": 1152
+                },
+                "prompt_cache_hit_tokens": 1152,
+                "prompt_cache_miss_tokens": 142
+              },
+              "enableXmlWrapper": false
+            }
+          }
+        ],
+        "parallelMode": false,
+        "parallelChats": [],
+        "selectedModels": [],
+        "settings": {
+          "modelIndex": 0,
+          "enableTools": [
+            {
+              "name": "qq_send_message",
+              "description": "发送群消息",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "number",
+                    "description": "群号"
+                  },
+                  "message": {
+                    "type": "array",
+                    "description": "要发送的内容",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string"
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "text": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "text"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "data"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "groupId",
+                  "message"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "qq_send_image",
+              "description": "发送图片",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "number",
+                    "description": "群号"
+                  },
+                  "url": {
+                    "type": "string",
+                    "description": "图片的 url"
+                  }
+                },
+                "required": [
+                  "groupId",
+                  "url"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "qq_get_group_info",
+              "description": "获取群信息",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "number",
+                    "description": "群号"
+                  }
+                },
+                "required": [
+                  "groupId"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "qq_get_group_member_list",
+              "description": "获取群成员列表",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "number",
+                    "description": "群号"
+                  }
+                },
+                "required": [
+                  "groupId"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "qq_get_group_member_info",
+              "description": "获取群成员信息",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "number",
+                    "description": "群号"
+                  },
+                  "user_id": {
+                    "type": "number",
+                    "description": "用户 QQ 号"
+                  }
+                },
+                "required": [
+                  "groupId",
+                  "user_id"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "qq_upload_group_file",
+              "description": "上传群文件",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "number",
+                    "description": "群号"
+                  },
+                  "file": {
+                    "type": "string",
+                    "description": "文件绝对路径"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "文件名称"
+                  }
+                },
+                "required": [
+                  "groupId",
+                  "file",
+                  "name"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "qq_send_group_notice",
+              "description": "发送群公告",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "number",
+                    "description": "群号"
+                  },
+                  "content": {
+                    "type": "string",
+                    "description": "公告内容"
+                  }
+                },
+                "required": [
+                  "groupId",
+                  "content"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "qq_get_latest_messages",
+              "description": "获取最近的若干条群聊消息",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "number",
+                    "description": "群号"
+                  },
+                  "messageCount": {
+                    "type": "number",
+                    "description": "获取最近几条消息"
+                  }
+                },
+                "required": [
+                  "groupId",
+                  "messageCount"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "util_add_memory",
+              "description": "将重要信息添加到长期记忆中。当用户分享关于自己、他人、事件的重要信息时(例如:姓名、喜好、经历、关系等),应该主动使用此工具记录,以便后续对话中查询使用。",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "type": "array",
+                    "description": "需要记忆的内容,每条信息应该是完整、清晰的描述",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "groupId": {
+                    "type": "string",
+                    "description": "群号，如果你不知道群号是什么，使用default"
+                  },
+                  "key": {
+                    "type": "string",
+                    "description": "记忆的唯一标识（可选）"
+                  }
+                },
+                "required": [
+                  "content",
+                  "groupId"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "util_update_memory",
+              "description": "更新记忆",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "string",
+                    "description": "群号，如果你不知道群号是什么，使用default"
+                  },
+                  "key": {
+                    "type": "string",
+                    "description": "记忆的唯一标识"
+                  },
+                  "content": {
+                    "type": "array",
+                    "description": "需要记忆的内容",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "groupId",
+                  "key",
+                  "content"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "util_search_memory",
+              "description": "从长期记忆中查询信息。当用户询问关于特定人物、事件、或之前对话中提到的信息时,应该首先使用此工具搜索相关记忆。例如:用户问\"XXX是谁\"、\"XXX喜欢什么\"、\"上次说的那件事\"等问题时,必须先调用此工具查询。",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "string",
+                    "description": "搜索的关键字,可以是人名、事件名、或相关描述"
+                  },
+                  "groupId": {
+                    "type": "string",
+                    "description": "群号，如果你不知道群号是什么，使用default"
+                  }
+                },
+                "required": [
+                  "query",
+                  "groupId"
+                ]
+              },
+              "enabled": true
+            },
+            {
+              "name": "util_websearch",
+              "description": "获取网页内容",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "description": "url"
+                  }
+                },
+                "required": [
+                  "url"
+                ]
+              },
+              "enabled": true
+            }
+          ],
+          "enableWebSearch": false,
+          "temperature": 0.6,
+          "contextLength": 100,
+          "systemPrompt": "",
+          "enableXmlWrapper": false,
+          "parallelToolCalls": true
+        }
       }
     }
   ]

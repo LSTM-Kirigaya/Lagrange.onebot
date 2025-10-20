@@ -28,12 +28,16 @@ export class TestChannel {
     @mapper.onGroup(qq_groups.TEST_CHANNEL, { at: true })
     async handleTestGroup(c: LagrangeContext<GroupMessage>) {
         const reply = c.message.message.filter(m => m.type === 'reply')[0];
-        if (reply) {
-            const res = await c.getMsg(parseInt(reply.data.id));
-            if (res instanceof Error) {
-                return;
+        if (reply && typeof reply === 'object' && 'data' in reply && reply.data && typeof (reply.data as any).id === 'string') {
+            const idStr = (reply.data as any).id as string;
+            const parsed = parseInt(idStr, 10);
+            if (!Number.isNaN(parsed)) {
+                const res = await c.getMsg(parsed);
+                if (res instanceof Error) {
+                    return;
+                }
+                console.log(JSON.stringify(res.data.message, null, 2));
             }
-            console.log(JSON.stringify(res.data.message, null, 2));
         }
     }
 
