@@ -35,8 +35,9 @@ export class SizedQueue<T> {
 
     // 入队
     enqueue(item: T): void {
-        if (this.items.length >= this.maxSize) {
-            this.items.shift(); // 如果队列已满，移除队首元素
+        // 仅当 maxSize > 0 且已满时才移除队首
+        if (this.maxSize > 0 && this.items.length >= this.maxSize) {
+            this.items.shift();
         }
         this.items.push(item);
     }
@@ -66,7 +67,8 @@ export class SizedQueue<T> {
         return this.maxSize;
     }
 
-    clear() {
+    // 清空队列
+    clear(): void {
         this.items.length = 0;
     }
 }

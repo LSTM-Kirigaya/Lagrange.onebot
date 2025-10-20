@@ -17,6 +17,7 @@ server.launch({
         process.env['LAGRANGE_CORE_HOME'] || '',
         'appsettings.json'
     ),
+    
     mcp: true,
     mcpOption: {
         enableMemory: true,

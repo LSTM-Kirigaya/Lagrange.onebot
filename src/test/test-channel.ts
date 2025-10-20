@@ -1,4 +1,4 @@
-import { mapper, LagrangeContext, PrivateMessage, GroupMessage, plugins, AddFriendOrGroupMessage, ApproveMessage } from '..';
+import { mapper, LagrangeContext, PrivateMessage, GroupMessage, plugins, AddFriendOrGroupMessage, ApproveMessage, LagrangeFactory } from '..';
 import { qq_groups, qq_users } from './global';
 
 export class TestChannel {
@@ -11,18 +11,22 @@ export class TestChannel {
         // c.sendPrivateMsg(1193466151, reply);
         // c.sendMessage(reply);
 
-        const user_info = await c.getStrangerInfo(qq_users.JIN_HUI);
-        if (!(user_info instanceof Error)) {
+        // const user_info = await c.getStrangerInfo(qq_users.JIN_HUI);
+        // if (!(user_info instanceof Error)) {
             
-        }
+        // }
 
+        // c.sendMessage([
+        //     LagrangeFactory.Image('/home/kirigaya/project/openmcp-tutorial/qq-group-summary/summary_image/群聊总结.2025.10.19.png')
+        // ]);
+
+        c.sendMessage('hello');
+        
         c.finishSession();
     }
 
     @mapper.onGroup(qq_groups.TEST_CHANNEL, { at: true })
     async handleTestGroup(c: LagrangeContext<GroupMessage>) {
-        console.log(c.message.message);
-
         const reply = c.message.message.filter(m => m.type === 'reply')[0];
         if (reply) {
             const res = await c.getMsg(parseInt(reply.data.id));

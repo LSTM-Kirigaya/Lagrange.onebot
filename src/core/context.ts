@@ -6,7 +6,7 @@ import ora from 'ora';
 import { scheduleJob } from 'node-schedule';
 
 import { pipe, onMessage, onClose } from './event';
-import { getGroupMessageImagePath, getPrivateMessageImagePath, getUserAvatarPath, logger } from '../util';
+import { getGroupMessageImagePath, getPrivateMessageImagePath, getUserAvatarPath, logger, SizedQueue } from '../util';
 import lagrangeMapper from './mapper';
 
 import type * as Lagrange from './type';
@@ -24,7 +24,6 @@ export class LagrangeContext<T extends Lagrange.Message> {
     public qq?: number;
     public realmService?: RealmService;
 
-
     constructor(message: T) {
         this.message = message;
         this.fin = false;
@@ -41,23 +40,67 @@ export class LagrangeContext<T extends Lagrange.Message> {
     public send<T>(apiJSON: Lagrange.ApiJSON): Promise<Lagrange.CommonResponse<T> | Error> {
         const ws = this.ws;
         const fin = this.fin;
-        return new Promise<Lagrange.CommonResponse<T> | Error>(resolve => {
-            ws.onmessage = (event) => {
+        const action = apiJSON.action || 'unknown_action';
+        const start = Date.now();
+        const grad = getGrad();
+        
+        return new Promise<Lagrange.CommonResponse<T> | Error>(resolve => {            
+            const handleMessage = (event: WebSocket.MessageEvent, type: string = 'pipe') => {
+                if (type !== 'send') {
+                    return;
+                }
+
                 const payload = JSON.parse(event.data.toString());
                 if (payload && payload.meta_event_type !== 'heartbeat') {
+                    const duration = Date.now() - start;
+
+                    // if (SHOW_LOGGER) {
+                    //     console.log(
+                    //         grad('LAGRANGE.CORE'),
+                    //         chalk.cyan('→ Response'),
+                    //         chalk.gray(`[${apiJSON.action}]`),
+                    //         chalk.green(`(${duration}ms)`)
+                    //     );
+                    // }
+                    
                     resolve(payload as Lagrange.CommonResponse<T>);
                 }
-            }
+            };
+
+            ws.onmessage = (e) => handleMessage(e, 'send');
+
 
             if (!fin) {
+                if (SHOW_LOGGER) {
+                    console.log(
+                        grad('LAGRANGE.CORE'),
+                        chalk.yellow('← Send'),
+                        chalk.gray(`[${apiJSON.action}]`)
+                    );
+                }
+
                 ws.send(JSON.stringify(apiJSON), (err?: Error) => {
                     if (err) {
-                        logger.warning('ws 发送消息错误, 是否在LaunchOption中缺少了AccessToken参数?');
+                        logger.warning('ws 发送消息错误, 是否在 LaunchOption 中缺少 AccessToken 参数?');
+                        if (SHOW_LOGGER) {
+                            console.log(
+                                grad('LAGRANGE.CORE'),
+                                chalk.red('✖ Send Failed'),
+                                chalk.gray(`[${apiJSON.action}]`)
+                            );
+                        }
                         resolve(err);
                     }
                 });
             } else {
                 logger.warning('会话已经结束，send 已经停用，检查你的代码！');
+                if (SHOW_LOGGER) {
+                    console.log(
+                        chalk.bgGray.white.bold('LAGRANGE.CORE'),
+                        chalk.red('⚠ Session Ended'),
+                        chalk.gray(`[${action}]`)
+                    );
+                }
             }
         });
     }
@@ -642,6 +685,8 @@ interface timeScheduleCb {
     spec: string;
 }
 
+export let SHOW_LOGGER = false;
+
 export class LagrangeServer {
 
     constructor(
@@ -653,7 +698,8 @@ export class LagrangeServer {
         public realmService?: RealmService,
         private readonly controllers: any[] = [],
         private readonly cycleCbMap: Map<CycleEvent, CycleCb[]> = new Map(),
-        private readonly timeScheduleCbMap: timeScheduleCb[] = []
+        private readonly timeScheduleCbMap: timeScheduleCb[] = [],
+        public readonly eventDispaterQueue = new SizedQueue<(value: Error | Lagrange.CommonResponse<any> | PromiseLike<Error | Lagrange.CommonResponse<any>>) => void>(-1)
     ) {
         this.cycleCbMap.set('mounted', []);
         this.cycleCbMap.set('unmounted', []);
@@ -685,7 +731,7 @@ export class LagrangeServer {
 
     public async run(config: LaunchOption): Promise<void> {
         showBanner();
-        
+
         const spinner = ora({
             text: 'Lagrange.Onebot Server is starting...',
             color: 'yellow',
@@ -731,8 +777,6 @@ export class LagrangeServer {
                 throw new Error("Unknown connection type! ");
         }
 
-        
-
         const context = new LagrangeContext({ post_type: 'meta_event' });
 
         await context.getFriendList();
@@ -777,7 +821,7 @@ export class LagrangeServer {
         });
 
         // 展示 mapper 中激活的控制器
-        await lagrangeMapper.showRegisterControllers(context);
+        // await lagrangeMapper.showRegisterControllers(context);
 
         process.on('SIGINT', async () => {
             // unmounted 周期
@@ -804,6 +848,7 @@ export class LagrangeServer {
             configPath = path.join(process.env.LAGRANGE_CORE_HOME || '', 'appsettings.json'),
             db = 'lagrange-0-db',
             mcp = false,
+            logger = true,
         } = config || {};
 
         if (!fs.existsSync(configPath)) {
@@ -827,7 +872,6 @@ export class LagrangeServer {
         this.realmService = realmService;
         this.onUnmounted(c => realmService.close());
 
-
         // 根据配置选择启动
         const buffer = fs.readFileSync(configPath, 'utf-8');
         const appSettings = JSON.parse(buffer);
@@ -849,6 +893,8 @@ export class LagrangeServer {
 
             this.onUnmounted(c => transport.close());
         }
+
+        SHOW_LOGGER = logger;
     }
 
     /**

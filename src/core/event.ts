@@ -6,7 +6,7 @@ import { logger } from '../util';
 import chalk from 'chalk';
 
 class Pipe {
-    server?: LagrangeServer;
+    public server?: LagrangeServer;
 
     public registerServer(server: LagrangeServer) {
         this.server = server;
@@ -16,7 +16,7 @@ class Pipe {
         switch (message.post_type) {
             case 'message': this.messagePipe(message); break;
             case 'notice': this.noticePipe(message); break;
-            case 'request':this.requestPipe(message); break;
+            case 'request': this.requestPipe(message); break;
             default: break;
         }
     }
@@ -56,11 +56,12 @@ class Pipe {
 
 export const pipe = new Pipe();
 
-export function onMessage(event: Buffer) {
+export function onMessage(event: Buffer) {    
     const messageBuffer = event.toString('utf-8');
     const messageJson = JSON.parse(messageBuffer) as Lagrange.Message;
     // 忽略系统 message
     if (messageJson.post_type !== 'meta_event') {
+        // 优先处理调度队列里面的
         try {
             pipe.run(messageJson);
         } catch (error) {
