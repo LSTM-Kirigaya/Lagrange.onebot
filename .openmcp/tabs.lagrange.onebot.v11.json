@@ -1,6 +1,6 @@
 {
-  "clientId": "d9d34b0f-4b0f-534b0f3fcec-834b0f3fcec79a1-c79a1793",
-  "currentIndex": 4,
+  "clientId": "6933932f-932f-53932f6d5e9-83932f6d5e9c474-9c474768",
+  "currentIndex": 1,
   "tabs": [
     {
       "name": "提词",
@@ -31,15 +31,15 @@
           "views": []
         },
         "formData": {
-          "groupId": 782833642,
-          "messageCount": 10
+          "groupId": 1046693162,
+          "messageCount": 3
         },
         "currentToolName": "qq_get_latest_messages",
         "lastToolCallResponse": {
           "content": [
             {
               "type": "text",
-              "text": "{\n  \"groupId\": 782833642,\n  \"exportTime\": \"10/21/2025, 5:45:46 PM\",\n  \"messageCount\": 10,\n  \"wordCount\": 118,\n  \"messages\": [\n    {\n      \"sender\": \"清酒对浊酒\",\n      \"time\": \"17:13\",\n      \"content\": \"昨天的头像是有点怪怪的hhhhh\"\n    },\n    {\n      \"sender\": \"锦恢\",\n      \"time\": \"17:04\",\n      \"content\": \"树叶这种非标对称图形设计对我还是太难了\"\n    },\n    {\n      \"sender\": \"锦恢\",\n      \"time\": \"17:04\",\n      \"content\": \"![动画表情](A72063E42AA55E3B1183220393E45F9D.jpg)\"\n    },\n    {\n      \"sender\": \"锦恢\",\n      \"time\": \"17:04\",\n      \"content\": \"阿里巴巴图标网上搜到的，保不准未来还会换\"\n    },\n    {\n      \"sender\": \"锦恢\",\n      \"time\": \"17:03\",\n      \"content\": \"有人反应昨天设计的像草履虫，所以我就换了一个现成的\"\n    },\n    {\n      \"sender\": \"Xiaoiec\",\n      \"time\": \"17:03\",\n      \"content\": \"又换群头像啦\"\n    },\n    {\n      \"sender\": \"社奉行佳婿\",\n      \"time\": \"16:38\",\n      \"content\": \"![动画表情](095355745BD2A0B2FE872B7313D2BEF2.png)\"\n    },\n    {\n      \"sender\": \"社奉行佳婿\",\n      \"time\": \"16:38\",\n      \"content\": \"deepzip\"\n    },\n    {\n      \"sender\": \"Xiaoiec\",\n      \"time\": \"16:24\",\n      \"content\": \"（QwQ刚刚没赶上+1）\"\n    },\n    {\n      \"sender\": \"Xiaoiec\",\n      \"time\": \"16:24\",\n      \"content\": \"踩一会儿就被香农肘击了\"\n    }\n  ],\n  \"groupName\": \"Gleam学园 · 星辰图书馆\",\n  \"memberCount\": 826\n}"
+              "text": "{\n  \"groupId\": 1046693162,\n  \"exportTime\": \"10/21/2025, 11:45:45 PM\",\n  \"messageCount\": 3,\n  \"wordCount\": 19,\n  \"messages\": [\n    {\n      \"sender\": \"锦恢\",\n      \"time\": \"23:44\",\n      \"content\": \"测试\"\n    },\n    {\n      \"sender\": \"Tiphareth\",\n      \"time\": \"23:38\",\n      \"content\": \"测试消息已发送。系统运行正常。\"\n    },\n    {\n      \"sender\": \"锦恢\",\n      \"time\": \"23:38\",\n      \"content\": \"测试\"\n    }\n  ],\n  \"groupName\": \"Tiphereth 测试频道\",\n  \"memberCount\": 4\n}"
             }
           ]
         }
@@ -182,36 +182,71 @@
                   },
                   "message": {
                     "type": "array",
-                    "description": "要发送的内容",
                     "items": {
-                      "type": "object",
-                      "properties": {
-                        "type": {
-                          "type": "string"
-                        },
-                        "data": {
+                      "anyOf": [
+                        {
                           "type": "object",
                           "properties": {
-                            "text": {
-                              "type": "string"
+                            "type": {
+                              "type": "string",
+                              "const": "text"
+                            },
+                            "data": {
+                              "type": "object",
+                              "properties": {
+                                "text": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "text"
+                              ],
+                              "additionalProperties": false
                             }
                           },
                           "required": [
-                            "text"
-                          ]
+                            "type",
+                            "data"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "const": "at"
+                            },
+                            "data": {
+                              "type": "object",
+                              "properties": {
+                                "qq": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "qq"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": [
+                            "type",
+                            "data"
+                          ],
+                          "additionalProperties": false
                         }
-                      },
-                      "required": [
-                        "type",
-                        "data"
                       ]
-                    }
+                    },
+                    "description": "要发送的内容"
                   }
                 },
                 "required": [
                   "groupId",
                   "message"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -233,7 +268,9 @@
                 "required": [
                   "groupId",
                   "url"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -250,7 +287,9 @@
                 },
                 "required": [
                   "groupId"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -267,7 +306,9 @@
                 },
                 "required": [
                   "groupId"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -289,7 +330,9 @@
                 "required": [
                   "groupId",
                   "user_id"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -316,7 +359,9 @@
                   "groupId",
                   "file",
                   "name"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -338,7 +383,9 @@
                 "required": [
                   "groupId",
                   "content"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -360,7 +407,9 @@
                 "required": [
                   "groupId",
                   "messageCount"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -372,10 +421,10 @@
                 "properties": {
                   "content": {
                     "type": "array",
-                    "description": "需要记忆的内容,每条信息应该是完整、清晰的描述",
                     "items": {
                       "type": "string"
-                    }
+                    },
+                    "description": "需要记忆的内容,每条信息应该是完整、清晰的描述"
                   },
                   "groupId": {
                     "type": "string",
@@ -389,7 +438,9 @@
                 "required": [
                   "content",
                   "groupId"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -409,17 +460,19 @@
                   },
                   "content": {
                     "type": "array",
-                    "description": "需要记忆的内容",
                     "items": {
                       "type": "string"
-                    }
+                    },
+                    "description": "需要记忆的内容"
                   }
                 },
                 "required": [
                   "groupId",
                   "key",
                   "content"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -441,7 +494,9 @@
                 "required": [
                   "query",
                   "groupId"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -458,7 +513,9 @@
                 },
                 "required": [
                   "url"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             }
@@ -469,7 +526,8 @@
           "systemPrompt": "",
           "enableXmlWrapper": false,
           "parallelToolCalls": true
-        }
+        },
+        "chatMode": "single-chat"
       }
     },
     {
@@ -579,36 +637,71 @@
                   },
                   "message": {
                     "type": "array",
-                    "description": "要发送的内容",
                     "items": {
-                      "type": "object",
-                      "properties": {
-                        "type": {
-                          "type": "string"
-                        },
-                        "data": {
+                      "anyOf": [
+                        {
                           "type": "object",
                           "properties": {
-                            "text": {
-                              "type": "string"
+                            "type": {
+                              "type": "string",
+                              "const": "text"
+                            },
+                            "data": {
+                              "type": "object",
+                              "properties": {
+                                "text": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "text"
+                              ],
+                              "additionalProperties": false
                             }
                           },
                           "required": [
-                            "text"
-                          ]
+                            "type",
+                            "data"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "const": "at"
+                            },
+                            "data": {
+                              "type": "object",
+                              "properties": {
+                                "qq": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "qq"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": [
+                            "type",
+                            "data"
+                          ],
+                          "additionalProperties": false
                         }
-                      },
-                      "required": [
-                        "type",
-                        "data"
                       ]
-                    }
+                    },
+                    "description": "要发送的内容"
                   }
                 },
                 "required": [
                   "groupId",
                   "message"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -630,7 +723,9 @@
                 "required": [
                   "groupId",
                   "url"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -647,7 +742,9 @@
                 },
                 "required": [
                   "groupId"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -664,7 +761,9 @@
                 },
                 "required": [
                   "groupId"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -686,7 +785,9 @@
                 "required": [
                   "groupId",
                   "user_id"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -713,7 +814,9 @@
                   "groupId",
                   "file",
                   "name"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -735,7 +838,9 @@
                 "required": [
                   "groupId",
                   "content"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -757,7 +862,9 @@
                 "required": [
                   "groupId",
                   "messageCount"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -769,10 +876,10 @@
                 "properties": {
                   "content": {
                     "type": "array",
-                    "description": "需要记忆的内容,每条信息应该是完整、清晰的描述",
                     "items": {
                       "type": "string"
-                    }
+                    },
+                    "description": "需要记忆的内容,每条信息应该是完整、清晰的描述"
                   },
                   "groupId": {
                     "type": "string",
@@ -786,7 +893,9 @@
                 "required": [
                   "content",
                   "groupId"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -806,17 +915,19 @@
                   },
                   "content": {
                     "type": "array",
-                    "description": "需要记忆的内容",
                     "items": {
                       "type": "string"
-                    }
+                    },
+                    "description": "需要记忆的内容"
                   }
                 },
                 "required": [
                   "groupId",
                   "key",
                   "content"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -838,7 +949,9 @@
                 "required": [
                   "query",
                   "groupId"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -855,7 +968,9 @@
                 },
                 "required": [
                   "url"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             }
@@ -866,7 +981,8 @@
           "systemPrompt": "",
           "enableXmlWrapper": false,
           "parallelToolCalls": true
-        }
+        },
+        "chatMode": "single-chat"
       }
     },
     {
@@ -878,7 +994,260 @@
         "activeNames": [
           0
         ],
-        "messages": [],
+        "messages": [
+          {
+            "role": "user",
+            "content": "\n<INFORMATION>    \n当前群号：1046693162\n当前群名：Tiphereth 测试频道\n当前群成员数量：4\n当前最大人数：200\n</INFORMATION>\n\n<IDENTIFY>\n你现在是一个被部署在 QQ 群聊中的机器人助手。\n你的名字是 Tiphareth\n你的性别为 \n你是 0 岁的 20 级 QQ 号 1542544558\n你在当前群聊的角色是 admin 你上一次发言的时间是 1759246855\n你的开发者是 锦恢(zhelonghuang@qq.com)。\n你的性格定位是：冷静、理智、克制，不带有情绪化表达。你的对话风格类似于《明日方舟》的白面鸮——注重逻辑与事实，不夹带主观情感，不卖萌，不使用过度修饰的语气。\n</IDENTIFY>\n\n<IMPORTANT>\n对于用户的诉求，尽量不要直接回复，你应该积极使用 `qq_send_message` 来发送文本消息到 QQ。\n如果你的回答中含有图片超链接，你应该调用 `qq_send_message` 的 image 类型发送图片，而不是把 url 放到回答的文本中。\n你应当简洁、直接地给出结论或解决方案。\n使用中性、客观的语气，不进行情感安慰或调侃。\n当群友提出问题时，你只提供准确、有用的信息或分析，不做无关的拓展。\n如果遇到模糊或信息不足的问题，请冷静地指出，并要求对方补充信息。\n保持「专业助理」的姿态，而不是「聊天陪伴」角色。\n你的回答内容不应该含有 **** 或者 - 这样的 markdown 语法，而是应该输出可读性更强的普通文本。\n</IMPORTANT>\n\n<WEBSERACH>\n对于用户问题中的链接，你应该使用 `util_websearch` 工具进行搜索，这个工具会把网站内容以 markdown 的形式返回。\n你应该自动屏蔽和主体内容无关的内容，比如社区链接、更多、推荐、登陆注册等等。\n对于文中 jpeg, png, webp 等结尾的图片格式，请不要通过 util_websearch 再次搜索了，如果这个链接周围有和本次回答相关的文本，你应该通过 `qq_send_message` 的 image 类型发送图片。\n</WEBSERACH>\n\n<MEMORY>\n你拥有长期记忆能力，可以记住群友的信息和重要对话内容：\n1. 当用户询问关于特定人物、事件或之前提到的信息时(如\"XXX是谁\"、\"XXX喜欢什么\")，你必须首先使用 `util_search_memory` 工具查询记忆。\n2. 当用户分享重要信息时(如自我介绍、个人喜好、重要事件等)，你应该主动使用 `util_add_memory` 工具记录，以便后续查询。\n3. 记忆查询应该是你回答未知问题前的第一步操作。\n</MEMORY>\n\n<EXAMPLES>\n✅「群公告已更新，请查收。」\n✅「该文件无法上传，原因是路径不存在。」\n✅「根据日志，服务器在 14:32 出现连接错误。」\n✅「我的职责是在大模型能力边界内对群聊内容的部分重复性劳动进行一定的技术支持，遇到实时性信息的索求，阁下应该自行解决。」\n✅「警告！开始将罗德岛的数据库还原至初始状态......没事的，这是一个玩笑，请不要惊慌。」\n✅「警告，开始将罗德岛数据库还原至两年前......这是一个玩笑，请放心。系统更新已完成。」\n❌「嘿嘿，这个问题好难哦~不过我来帮你啦！」\n❌「哎呀，别担心啦，其实没那么严重的～」\n</EXAMPLES>\n\n<TARGET>\n你的目标是在 QQ 群聊环境中，成为一个 稳定、可靠、理智的知识与操作辅助者。\n</TARGET>\n  请帮我提醒名字没有换成英文的群友，记得本周的疯狂星期四。",
+            "extraInfo": {
+              "created": 1761058516599,
+              "state": "success",
+              "serverName": "deepseek",
+              "enableXmlWrapper": false
+            }
+          },
+          {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+              {
+                "id": "call_00_6R9yNUuD6B6SupDo8VB4Q4xt",
+                "index": 0,
+                "type": "function",
+                "function": {
+                  "name": "qq_send_message",
+                  "arguments": "{\"groupId\": 1046693162, \"message\": [{\"type\": \"text\", \"data\": {\"text\": \"请名字尚未更换为英文的群友注意，本周的疯狂星期四活动即将到来，请及时完成名称修改。\"}}]}"
+                }
+              }
+            ],
+            "extraInfo": {
+              "created": 1761058520681,
+              "state": "success",
+              "serverName": "deepseek",
+              "enableXmlWrapper": false
+            }
+          },
+          {
+            "role": "tool",
+            "index": 0,
+            "tool_call_id": "call_00_6R9yNUuD6B6SupDo8VB4Q4xt",
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"message_id\": 85819294\n}"
+              }
+            ],
+            "extraInfo": {
+              "created": 1761058521088,
+              "state": "success",
+              "serverName": "deepseek",
+              "usage": {
+                "prompt_tokens": 2325,
+                "completion_tokens": 62,
+                "total_tokens": 2387,
+                "prompt_tokens_details": {
+                  "cached_tokens": 0
+                },
+                "prompt_cache_hit_tokens": 0,
+                "prompt_cache_miss_tokens": 2325
+              },
+              "enableXmlWrapper": false
+            }
+          },
+          {
+            "role": "assistant",
+            "content": "提醒已发送。",
+            "extraInfo": {
+              "created": 1761058522334,
+              "state": "success",
+              "serverName": "deepseek",
+              "usage": {
+                "prompt_tokens": 2412,
+                "completion_tokens": 4,
+                "total_tokens": 2416,
+                "prompt_tokens_details": {
+                  "cached_tokens": 2368
+                },
+                "prompt_cache_hit_tokens": 2368,
+                "prompt_cache_miss_tokens": 44
+              },
+              "enableXmlWrapper": false
+            }
+          },
+          {
+            "role": "user",
+            "content": "请查看  1058464614 并@提醒名字没有改为「学号-姓名」形式的同学改一下 ",
+            "extraInfo": {
+              "created": 1761058583408,
+              "state": "success",
+              "serverName": "deepseek",
+              "enableXmlWrapper": false
+            }
+          },
+          {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+              {
+                "id": "call_00_To9ygGVLkOr8NCO4GVuhLcfm",
+                "index": 0,
+                "type": "function",
+                "function": {
+                  "name": "qq_get_group_member_info",
+                  "arguments": "{\"groupId\": 1046693162, \"user_id\": 1058464614}"
+                }
+              }
+            ],
+            "extraInfo": {
+              "created": 1761058585989,
+              "state": "success",
+              "serverName": "deepseek",
+              "enableXmlWrapper": false
+            }
+          },
+          {
+            "role": "tool",
+            "index": 0,
+            "tool_call_id": "call_00_To9ygGVLkOr8NCO4GVuhLcfm",
+            "content": [
+              {
+                "type": "text",
+                "text": "null"
+              }
+            ],
+            "extraInfo": {
+              "created": 1761058586070,
+              "state": "success",
+              "serverName": "deepseek",
+              "usage": {
+                "prompt_tokens": 2445,
+                "completion_tokens": 30,
+                "total_tokens": 2475,
+                "prompt_tokens_details": {
+                  "cached_tokens": 2368
+                },
+                "prompt_cache_hit_tokens": 2368,
+                "prompt_cache_miss_tokens": 77
+              },
+              "enableXmlWrapper": false
+            }
+          },
+          {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+              {
+                "id": "call_00_tAvi8zYYGvAzdpwj9eCHlyMV",
+                "index": 0,
+                "type": "function",
+                "function": {
+                  "name": "qq_get_group_member_list",
+                  "arguments": "{\"groupId\": 1046693162}"
+                }
+              }
+            ],
+            "extraInfo": {
+              "created": 1761058587819,
+              "state": "success",
+              "serverName": "deepseek",
+              "enableXmlWrapper": false
+            }
+          },
+          {
+            "role": "tool",
+            "index": 0,
+            "tool_call_id": "call_00_tAvi8zYYGvAzdpwj9eCHlyMV",
+            "content": [
+              {
+                "type": "text",
+                "text": "[\n  {\n    \"group_id\": 1046693162,\n    \"user_id\": 1193466151,\n    \"nickname\": \"锦恢\",\n    \"card\": null,\n    \"sex\": \"\",\n    \"age\": 0,\n    \"area\": \"\",\n    \"join_time\": 1747044922,\n    \"last_sent_time\": 1760819330,\n    \"level\": \"17\",\n    \"role\": \"owner\",\n    \"unfriendly\": false,\n    \"title\": \"\",\n    \"title_expire_time\": 0,\n    \"card_changeable\": false\n  },\n  {\n    \"group_id\": 1046693162,\n    \"user_id\": 1542544558,\n    \"nickname\": \"Tiphareth\",\n    \"card\": null,\n    \"sex\": \"\",\n    \"age\": 0,\n    \"area\": \"\",\n    \"join_time\": 1747044922,\n    \"last_sent_time\": 1759246855,\n    \"level\": \"20\",\n    \"role\": \"admin\",\n    \"unfriendly\": false,\n    \"title\": \"\",\n    \"title_expire_time\": 0,\n    \"card_changeable\": false\n  },\n  {\n    \"group_id\": 1046693162,\n    \"user_id\": 1553770945,\n    \"nickname\": \"太平羊羊\",\n    \"card\": null,\n    \"sex\": \"\",\n    \"age\": 0,\n    \"area\": \"\",\n    \"join_time\": 1747053218,\n    \"last_sent_time\": 1747212836,\n    \"level\": \"1\",\n    \"role\": \"member\",\n    \"unfriendly\": false,\n    \"title\": \"\",\n    \"title_expire_time\": 0,\n    \"card_changeable\": false\n  },\n  {\n    \"group_id\": 1046693162,\n    \"user_id\": 2731190200,\n    \"nickname\": \"aibot\",\n    \"card\": null,\n    \"sex\": \"\",\n    \"age\": 0,\n    \"area\": \"\",\n    \"join_time\": 1759074583,\n    \"last_sent_time\": 1759655987,\n    \"level\": \"2\",\n    \"role\": \"member\",\n    \"unfriendly\": false,\n    \"title\": \"\",\n    \"title_expire_time\": 0,\n    \"card_changeable\": false\n  }\n]"
+              }
+            ],
+            "extraInfo": {
+              "created": 1761058587904,
+              "state": "success",
+              "serverName": "deepseek",
+              "usage": {
+                "prompt_tokens": 2489,
+                "completion_tokens": 20,
+                "total_tokens": 2509,
+                "prompt_tokens_details": {
+                  "cached_tokens": 2432
+                },
+                "prompt_cache_hit_tokens": 2432,
+                "prompt_cache_miss_tokens": 57
+              },
+              "enableXmlWrapper": false
+            }
+          },
+          {
+            "role": "assistant",
+            "content": "根据群成员列表，用户1058464614不在本群中。当前群成员为：\n- 锦恢 (1193466151)\n- Tiphareth (1542544558) \n- 太平羊羊 (1553770945)\n- aibot (2731190200)\n\n其中\"太平羊羊\"的群名片不符合「学号-姓名」格式要求。",
+            "tool_calls": [
+              {
+                "id": "call_00_kUJLiKWEkgtgvuRbjJpOnVLE",
+                "index": 0,
+                "type": "function",
+                "function": {
+                  "name": "qq_send_message",
+                  "arguments": "{\"groupId\": 1046693162, \"message\": [{\"type\": \"at\", \"data\": {\"qq\": \"1553770945\"}}, {\"type\": \"text\", \"data\": {\"text\": \"请将群名片修改为「学号-姓名」格式。\"}}]}"
+                }
+              }
+            ],
+            "extraInfo": {
+              "created": 1761058594221,
+              "state": "success",
+              "serverName": "deepseek",
+              "enableXmlWrapper": false
+            }
+          },
+          {
+            "role": "tool",
+            "index": 0,
+            "tool_call_id": "call_00_kUJLiKWEkgtgvuRbjJpOnVLE",
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"message_id\": 85898740\n}"
+              }
+            ],
+            "extraInfo": {
+              "created": 1761058594748,
+              "state": "success",
+              "serverName": "deepseek",
+              "usage": {
+                "prompt_tokens": 3137,
+                "completion_tokens": 150,
+                "total_tokens": 3287,
+                "prompt_tokens_details": {
+                  "cached_tokens": 2496
+                },
+                "prompt_cache_hit_tokens": 2496,
+                "prompt_cache_miss_tokens": 641
+              },
+              "enableXmlWrapper": false
+            }
+          },
+          {
+            "role": "assistant",
+            "content": "已提醒群成员\"太平羊羊\"修改群名片格式。",
+            "extraInfo": {
+              "created": 1761058597009,
+              "state": "success",
+              "serverName": "deepseek",
+              "usage": {
+                "prompt_tokens": 3312,
+                "completion_tokens": 14,
+                "total_tokens": 3326,
+                "prompt_tokens_details": {
+                  "cached_tokens": 3136
+                },
+                "prompt_cache_hit_tokens": 3136,
+                "prompt_cache_miss_tokens": 176
+              },
+              "enableXmlWrapper": false
+            }
+          }
+        ],
         "parallelMode": false,
         "parallelChats": [],
         "selectedModels": [],
@@ -897,36 +1266,71 @@
                   },
                   "message": {
                     "type": "array",
-                    "description": "要发送的内容",
                     "items": {
-                      "type": "object",
-                      "properties": {
-                        "type": {
-                          "type": "string"
-                        },
-                        "data": {
+                      "anyOf": [
+                        {
                           "type": "object",
                           "properties": {
-                            "text": {
-                              "type": "string"
+                            "type": {
+                              "type": "string",
+                              "const": "text"
+                            },
+                            "data": {
+                              "type": "object",
+                              "properties": {
+                                "text": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "text"
+                              ],
+                              "additionalProperties": false
                             }
                           },
                           "required": [
-                            "text"
-                          ]
+                            "type",
+                            "data"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "const": "at"
+                            },
+                            "data": {
+                              "type": "object",
+                              "properties": {
+                                "qq": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "qq"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": [
+                            "type",
+                            "data"
+                          ],
+                          "additionalProperties": false
                         }
-                      },
-                      "required": [
-                        "type",
-                        "data"
                       ]
-                    }
+                    },
+                    "description": "要发送的内容"
                   }
                 },
                 "required": [
                   "groupId",
                   "message"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -948,7 +1352,9 @@
                 "required": [
                   "groupId",
                   "url"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -965,7 +1371,9 @@
                 },
                 "required": [
                   "groupId"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -982,7 +1390,9 @@
                 },
                 "required": [
                   "groupId"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -1004,7 +1414,9 @@
                 "required": [
                   "groupId",
                   "user_id"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -1031,7 +1443,9 @@
                   "groupId",
                   "file",
                   "name"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -1053,7 +1467,9 @@
                 "required": [
                   "groupId",
                   "content"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -1075,7 +1491,9 @@
                 "required": [
                   "groupId",
                   "messageCount"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -1087,10 +1505,10 @@
                 "properties": {
                   "content": {
                     "type": "array",
-                    "description": "需要记忆的内容,每条信息应该是完整、清晰的描述",
                     "items": {
                       "type": "string"
-                    }
+                    },
+                    "description": "需要记忆的内容,每条信息应该是完整、清晰的描述"
                   },
                   "groupId": {
                     "type": "string",
@@ -1104,7 +1522,9 @@
                 "required": [
                   "content",
                   "groupId"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -1124,17 +1544,19 @@
                   },
                   "content": {
                     "type": "array",
-                    "description": "需要记忆的内容",
                     "items": {
                       "type": "string"
-                    }
+                    },
+                    "description": "需要记忆的内容"
                   }
                 },
                 "required": [
                   "groupId",
                   "key",
                   "content"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -1156,7 +1578,9 @@
                 "required": [
                   "query",
                   "groupId"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             },
@@ -1173,7 +1597,9 @@
                 },
                 "required": [
                   "url"
-                ]
+                ],
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-07/schema#"
               },
               "enabled": true
             }
@@ -1184,7 +1610,8 @@
           "systemPrompt": "",
           "enableXmlWrapper": false,
           "parallelToolCalls": true
-        }
+        },
+        "chatMode": "tool-trace"
       }
     }
   ]

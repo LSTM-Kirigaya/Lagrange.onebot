@@ -870,7 +870,6 @@ export class LagrangeServer {
         await realmService.connect();
 
         this.realmService = realmService;
-        this.onUnmounted(c => realmService.close());
 
         // 根据配置选择启动
         const buffer = fs.readFileSync(configPath, 'utf-8');

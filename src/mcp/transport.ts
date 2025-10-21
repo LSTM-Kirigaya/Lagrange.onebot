@@ -27,44 +27,31 @@ export class McpTransport {
     private setupRoutes() {
         // POST: client → server
         this.app.post("/mcp", async (req, res) => {
-            const sessionId = req.headers["mcp-session-id"] as string | 'default-session-id';
-            let transport: StreamableHTTPServerTransport;
-
-            if (sessionId && this.transports[sessionId]) {
-                // 复用已有会话
-                transport = this.transports[sessionId];
-            } else if (isInitializeRequest(req.body)) {
-                // 新建会话
-                transport = new StreamableHTTPServerTransport({
-                    sessionIdGenerator: () => randomUUID(),
-                    onsessioninitialized: (sid) => {
-                        this.transports[sid] = transport;
-                    },
+            try {
+                const transport = new StreamableHTTPServerTransport({
+                    sessionIdGenerator: undefined,
+                    enableJsonResponse: true
                 });
 
-                // 清理逻辑
-                transport.onclose = () => {
-                    if (transport.sessionId) {
-                        delete this.transports[transport.sessionId];
-                    }
-                };
-
-                const server = this.server;
-                await server.connect(transport);
-            } else {
-                res.status(400).json({
-                    jsonrpc: "2.0",
-                    error: {
-                        code: -32000,
-                        message: "Bad Request: No valid session ID provided",
-                    },
-                    id: null,
+                res.on('close', () => {
+                    transport.close();
                 });
-                return;
+
+                await this.server.connect(transport);
+                await transport.handleRequest(req, res, req.body);
+            } catch (error) {
+                console.error('Error handling MCP request:', error);
+                if (!res.headersSent) {
+                    res.status(500).json({
+                        jsonrpc: '2.0',
+                        error: {
+                            code: -32603,
+                            message: 'Internal server error'
+                        },
+                        id: null
+                    });
+                }
             }
-
-            // 处理请求
-            await transport.handleRequest(req, res, req.body);
         });
 
         // GET/DELETE: server → client
@@ -102,7 +89,7 @@ export class McpTransport {
                 "  🌐 Local   ➜  " +
                 chalk.gray(url)
             );
-            
+
             // 如果获取到了局域网IP，则也显示局域网访问地址
             if (localIP) {
                 const networkUrl = `http://${localIP}:${this.port}/mcp`;

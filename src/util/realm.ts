@@ -7,7 +7,6 @@ import { DecodedMessage, MessageEntity, QueryMessageDto, QueryMessageItem, Realm
 import chalk from 'chalk';
 
 export class RealmService {
-    public realm: Realm | null = null;
 
     constructor(
         private readonly realmConfig: RealmConfig
@@ -24,23 +23,23 @@ export class RealmService {
     /**
      * @description 初始化数据库连接
      */
-    async connect(): Promise<void> {
-
+    async connect() {
         if (!this.checkRealmFileExists()) {
             throw new Error(`Realm数据库文件不存在: ${this.realmConfig.path}`);
         }
 
         try {
-            this.realm = new Realm({
+            const realm = new Realm({
                 path: this.realmConfig.path,
                 schemaVersion: this.realmConfig.schemaVersion,
                 encryptionKey: this.realmConfig.encryptionKey,
-                readOnly: true,
             });
 
             console.log(
                 "📦 Realm Database " + chalk.green("connected")
             );
+
+            return realm;
 
         } catch (error: any) {
             console.log(
@@ -49,17 +48,10 @@ export class RealmService {
 
             throw new Error(`无法打开Realm数据库: ${error.message}`);
         }
+
+        return undefined;
     }
 
-    /**
-     * @description 关闭数据库连接
-     */
-    close(): void {
-        if (this.realm) {
-            this.realm.close();
-            this.realm = null;
-        }
-    }
 
     /**
      * @description 获取指定群组的最新N条消息
@@ -73,12 +65,14 @@ export class RealmService {
         limit: number = 10
     ): Promise<QueryMessageDto | undefined> {
 
-        if (!this.realm) {
-            throw new Error('数据库未初始化');
+        const realm = await this.connect();
+
+        if (!realm) {
+            return undefined;
         }
 
         try {
-            const messageRecords = this.realm.objects("MessageRecord");
+            const messageRecords = realm.objects("MessageRecord");
             
             // 初始化用户映射
             const userMap: Record<number, UserInfo> = {};
@@ -177,10 +171,13 @@ export class RealmService {
             // exportData.users = userMap;
             exportData.messageCount = messageCount;
             exportData.wordCount = wordCount;
+            realm?.close();
 
             return exportData;
         } catch (error) {
             console.error('查询最新消息时出错:', error);
+            realm?.close();
+
             return undefined;
         }
     }
@@ -196,12 +193,14 @@ export class RealmService {
         groupId: number,
         date: Date = new Date()
     ): Promise<QueryMessageDto | undefined> {
-        if (!this.realm) {
-            throw new Error('数据库未初始化');
+        const realm = await this.connect();
+
+        if (!realm) {
+            return undefined;
         }
 
         try {
-            const messageRecords = this.realm.objects("MessageRecord");
+            const messageRecords = realm.objects("MessageRecord");
             
             // 初始化用户映射
             const userMap: Record<number, UserInfo> = {};
@@ -313,9 +312,13 @@ export class RealmService {
             exportData.messageCount = messageCount;
             exportData.wordCount = wordCount;
 
+            realm.close();
+
             return exportData;
         } catch (error) {
             console.error('查询指定日期消息时出错:', error);
+            realm.close();
+            
             return undefined;
         }
     }
