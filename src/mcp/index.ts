@@ -34,7 +34,7 @@ export class LagrangeMcpManager {
                 },
             },
             async ({ groupId, message }) => {
-                const responseText = await Tool.sendGroupMsg(context, groupId, message);
+                const responseText = await Tool.sendGroupMsg(context, groupId, message as Lagrange.Send.Default[]);
                 return {
                     content: [{ type: 'text', text: responseText }]
                 }

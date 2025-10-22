@@ -13,6 +13,15 @@ export async function sendGroupMsg(
         }
     }
 
+    message = message.map(msg => {
+        if (msg.type === 'at') {
+            if (typeof msg.data.qq === 'number') {
+                msg.data.qq = String(msg.data.qq);
+            }
+        }
+        return msg;
+    });
+
     const res = await context.sendGroupMsg(group_id, message);
     const text = (res instanceof Error) ? res.message : JSON.stringify(res.data, null, 2);
     return text;

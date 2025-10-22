@@ -1,5 +1,5 @@
 {
-  "clientId": "6933932f-932f-53932f6d5e9-83932f6d5e9c474-9c474768",
+  "clientId": "98246b3e-6b3e-546b3e61d42-846b3e61d428fa7-28fa7c61",
   "currentIndex": 1,
   "tabs": [
     {
@@ -32,14 +32,27 @@
         },
         "formData": {
           "groupId": 1046693162,
-          "messageCount": 3
+          "message": [
+            {
+              "type": "at",
+              "data": {
+                "qq": 1193466151
+              }
+            },
+            {
+              "type": "text",
+              "data": {
+                "text": "et fugiat ex"
+              }
+            }
+          ]
         },
-        "currentToolName": "qq_get_latest_messages",
+        "currentToolName": "qq_send_message",
         "lastToolCallResponse": {
           "content": [
             {
               "type": "text",
-              "text": "{\n  \"groupId\": 1046693162,\n  \"exportTime\": \"10/21/2025, 11:45:45 PM\",\n  \"messageCount\": 3,\n  \"wordCount\": 19,\n  \"messages\": [\n    {\n      \"sender\": \"锦恢\",\n      \"time\": \"23:44\",\n      \"content\": \"测试\"\n    },\n    {\n      \"sender\": \"Tiphareth\",\n      \"time\": \"23:38\",\n      \"content\": \"测试消息已发送。系统运行正常。\"\n    },\n    {\n      \"sender\": \"锦恢\",\n      \"time\": \"23:38\",\n      \"content\": \"测试\"\n    }\n  ],\n  \"groupName\": \"Tiphereth 测试频道\",\n  \"memberCount\": 4\n}"
+              "text": "{\n  \"message_id\": 88051761\n}"
             }
           ]
         }
@@ -221,7 +234,10 @@
                               "type": "object",
                               "properties": {
                                 "qq": {
-                                  "type": "string"
+                                  "type": [
+                                    "string",
+                                    "number"
+                                  ]
                                 }
                               },
                               "required": [
@@ -676,7 +692,10 @@
                               "type": "object",
                               "properties": {
                                 "qq": {
-                                  "type": "string"
+                                  "type": [
+                                    "string",
+                                    "number"
+                                  ]
                                 }
                               },
                               "required": [

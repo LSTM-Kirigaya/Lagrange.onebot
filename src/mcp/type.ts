@@ -48,7 +48,10 @@ export const Video = z.object({
 export const At = z.object({
     type: z.literal('at'),
     data: z.object({
-        qq: z.string()
+        qq: z.union([
+            z.string(),
+            z.number()
+        ])
     })
 });
 
