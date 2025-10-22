@@ -43,12 +43,9 @@ export class LagrangeContext<T extends Lagrange.Message> {
         const action = apiJSON.action || 'unknown_action';
         const start = Date.now();
         const grad = getGrad();
-        
-        return new Promise<Lagrange.CommonResponse<T> | Error>(resolve => {            
-            const handleMessage = (event: WebSocket.MessageEvent, type: string = 'pipe') => {
-                if (type !== 'send') {
-                    return;
-                }
+
+        return new Promise<Lagrange.CommonResponse<T> | Error>(resolve => {
+            ws.onmessage = event => {
 
                 const payload = JSON.parse(event.data.toString());
                 if (payload && payload.meta_event_type !== 'heartbeat') {
@@ -62,20 +59,31 @@ export class LagrangeContext<T extends Lagrange.Message> {
                     //         chalk.green(`(${duration}ms)`)
                     //     );
                     // }
-                    
+
                     resolve(payload as Lagrange.CommonResponse<T>);
                 }
             };
 
-            ws.onmessage = (e) => handleMessage(e, 'send');
-
-
             if (!fin) {
                 if (SHOW_LOGGER) {
+                    const parts = [];
+
+                    if (apiJSON.params.group_id) {
+                        parts.push(`group_id: ${apiJSON.params.group_id}`);
+                    }
+                    if (apiJSON.params.user_id) {
+                        parts.push(`user_id: ${apiJSON.params.user_id}`);
+                    }
+
+                    const displayParams = parts.length
+                        ? chalk.yellow(parts.join(chalk.gray(' | ')))
+                        : chalk.gray('no params');
+
                     console.log(
                         grad('LAGRANGE.CORE'),
                         chalk.yellow('← Send'),
-                        chalk.gray(`[${apiJSON.action}]`)
+                        chalk.gray(`[${apiJSON.action}]`),
+                        displayParams
                     );
                 }
 
@@ -93,7 +101,12 @@ export class LagrangeContext<T extends Lagrange.Message> {
                     }
                 });
             } else {
-                logger.warning('会话已经结束，send 已经停用，检查你的代码！');
+                console.log(
+                    chalk.bgRed.white.bold(' WARN '),
+                    chalk.redBright('会话已经结束，send 已经停用，检查你的代码！'),
+                    chalk.gray('查看是否在当前 action 调用前结束了行动；是否将发送行为包裹在了 setTimeout 中。')
+                );
+                
                 if (SHOW_LOGGER) {
                     console.log(
                         chalk.bgGray.white.bold('LAGRANGE.CORE'),
@@ -674,6 +687,17 @@ export class LagrangeContext<T extends Lagrange.Message> {
         }
 
         return undefined;
+    }
+
+    /**
+     * @description 等待
+     * @param timeout ms
+     * @returns 
+     */
+    public wait(timeout: number) {
+        return new Promise<void>((resolve) => {
+            setTimeout(resolve, timeout);
+        });
     }
 }
 

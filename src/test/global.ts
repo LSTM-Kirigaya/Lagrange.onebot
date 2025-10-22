@@ -21,3 +21,5 @@ export const qq_users = {
      */
     TIP: 1542544558
 };
+
+export const FAAS_BASE_URL = 'http://localhost:3000';
