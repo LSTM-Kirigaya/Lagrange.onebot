@@ -64,7 +64,7 @@ async function startMcpServer() {
         console.log('\n启动 MCP Server...\n');
         
         // 创建并启动 MCP server
-        const transport = createMcpServer(mockContext, mcpOption);
+        const transport = await createMcpServer(mockContext, mcpOption);
         
         console.log('✓ MCP Server 启动成功!');
         console.log(`✓ 服务地址: http://${mcpOption.host}:${mcpOption.port}`);

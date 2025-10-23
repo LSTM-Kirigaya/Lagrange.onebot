@@ -16,3 +16,6 @@ publish
 test/*.js
 pull.bat
 doc/*.ts
+.openmcp
+.data
+.cache
