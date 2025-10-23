@@ -1,5 +1,5 @@
 import { connect } from "@lancedb/lancedb";
-import { pipeline, Tensor } from "@xenova/transformers";
+import { pipeline, Tensor, env } from "@xenova/transformers";
 import { v4 as uuidv4 } from "uuid";
 
 export type MemoryOptions = {
@@ -7,6 +7,8 @@ export type MemoryOptions = {
   TABLE?: string;
   MODEL?: string;
   k?: number;
+  cacheDir?: string;         // ← 可选：transformers.js 缓存目录
+  warmupText?: string;       // ← 可选：预热使用的短文本
 };
 
 export class Memory {
@@ -14,14 +16,51 @@ export class Memory {
   TABLE: string = "memory";                          // 表名
   MODEL: string = "Xenova/paraphrase-multilingual-MiniLM-L12-v2";         // 使用的embedding模型
   k: number = 5;
-
   private _embedder: any | null = null;
+  private _inited = false;
+  private _warm = false;
+  private _warmupText = "你好";
 
   constructor(opts: MemoryOptions = {}) {
     if (opts.DB_DIR) this.DB_DIR = opts.DB_DIR;
     if (opts.TABLE) this.TABLE = opts.TABLE;
     if (opts.MODEL) this.MODEL = opts.MODEL;
     if (typeof opts.k === "number") this.k = opts.k;
+    if (opts.warmupText) this._warmupText = opts.warmupText;
+
+    // 配置 transformers.js 的缓存目录（可选）
+    if (opts.cacheDir) {
+      env.cacheDir = opts.cacheDir;              // e.g. ".cache/transformers"
+      env.allowLocalModels = true;               // 允许从本地缓存加载
+    }
+
+  }
+  /**
+  * 工厂函数：一行搞定实例化 + 预下载 + 预热
+  */
+  static async create(opts: MemoryOptions = {}): Promise<Memory> {
+    const mem = new Memory(opts);
+    await mem.init();
+    await mem.warmup();
+    return mem;
+  }
+
+  /**
+   * 预下载并加载模型
+   */
+  async init() {
+    if (this._inited) return;
+    this._embedder = await pipeline("feature-extraction", this.MODEL);
+    this._inited = true;
+  }
+
+  /**
+   * 预热
+   */
+  async warmup() {
+    if (this._warm) return;
+    await this.embed(this._warmupText);
+    this._warm = true;
   }
 
   /**

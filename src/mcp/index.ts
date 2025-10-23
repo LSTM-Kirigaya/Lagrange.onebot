@@ -14,12 +14,28 @@ import { McpLanchOption } from "../core/dto";
 import { McpTransport } from "./transport";
 
 export class LagrangeMcpManager {
-    mem: Memory;
+    private mem: Memory | null = null; 
     constructor(
         private readonly server: McpServer,
         private readonly context: LagrangeContext<Lagrange.Message>,
     ) {
-        this.mem = new Memory();
+    }
+    private async getMem(): Promise<Memory> {
+        if (!this.mem) {
+            console.warn("[Memory] 警告：Memory 实例应当在启动MCPServer之前初始化，但实际上尚未初始化，正在自动初始化...");
+            await this.initMemory();
+        }
+        return this.mem as Memory;
+    }
+    public async initMemory() {
+        if (this.mem) return;
+        console.log("[Memory] 模型初始化开始：下载/加载/预热…");
+        this.mem = await Memory.create({
+            DB_DIR: ".data/memory",
+            cacheDir: ".cache/transformers",
+            warmupText: "你好",
+        });
+        console.log("[Memory] 模型初始化完成。");
     }
 
 
@@ -224,7 +240,12 @@ export class LagrangeMcpManager {
         );
     }
 
-    public registerMemory() {
+    public async registerMemory() {
+        if (!this.mem) {
+            // 如果外部忘记调用 initMemory，这里兜底确保阻塞等待
+            await this.initMemory();
+        }
+
         // 1) 添加记忆
         this.server.registerTool(
             "util_add_memory",
@@ -250,7 +271,7 @@ export class LagrangeMcpManager {
                         .string()
                         .trim()
                         .default("default")
-                        .describe("命名空间/群组 ID（用于隔离不同用户/会话的记忆）。未知则使用 default"),
+                        .describe("命名空间，即当前群聊 ID。未知则使用 default"),
                     key: z
                         .string()
                         .trim()
@@ -259,8 +280,8 @@ export class LagrangeMcpManager {
                 },
             },
             async ({ content, groupId, key }) => {
-                const responseText = await this.mem.addMemory(content, [groupId], key);
-                // 维持你原有的返回结构
+                const mem = await this.getMem();
+                const responseText = await mem.addMemory(content, [groupId], key);
                 return { content: [{ type: "text", text: responseText }] };
             }
         );
@@ -277,7 +298,7 @@ export class LagrangeMcpManager {
                         .string()
                         .trim()
                         .default("default")
-                        .describe("命名空间/群组 ID。未知则使用 default"),
+                        .describe("命名空间，即当前群聊 ID。未知则使用 default"),
                     key: z
                         .string()
                         .trim()
@@ -297,7 +318,8 @@ export class LagrangeMcpManager {
                 },
             },
             async ({ groupId, key, content }) => {
-                const responseText = await this.mem.updateMemory(groupId, key, content);
+                const mem = await this.getMem();
+                const responseText = await mem.updateMemory(groupId, key, content);
                 return { content: [{ type: "text", text: responseText }] };
             }
         );
@@ -310,7 +332,7 @@ export class LagrangeMcpManager {
                     "从【长期记忆】中做语义搜索。\n" +
                     "当用户询问与人物、事件、偏好、历史对话相关的问题（如“XXX 是谁”“他喜欢什么”“上次说的那件事是什么”），应优先调用本工具检索再作答。\n" +
                     "检索基于语义相似度（非关键词），能找到表达不同但含义相近的记忆。",
-                inputSchema:{
+                inputSchema: {
                     query: z
                         .string()
                         .trim()
@@ -321,7 +343,7 @@ export class LagrangeMcpManager {
                         .string()
                         .trim()
                         .default("default")
-                        .describe("命名空间/群组 ID。未知则使用 default"),
+                        .describe("命名空间，即当前群聊 ID。未知则使用 default"),
                     topK: z
                         .number()
                         .int()
@@ -332,7 +354,8 @@ export class LagrangeMcpManager {
                 },
             },
             async ({ groupId, query, topK, }) => {
-                const responseText = await this.mem.queryMemory(query, [groupId], topK);
+                const mem = await this.getMem();
+                const responseText = await mem.queryMemory(query, [groupId], topK);
                 return { content: [{ type: "text", text: responseText }] };
             }
         );
@@ -358,13 +381,14 @@ export class LagrangeMcpManager {
                 },
             },
             async ({ groupId, key }) => {
-                const responseText = await this.mem.deleteMemory(groupId, key);
+                const mem = await this.getMem();
+                const responseText = await mem.deleteMemory(groupId, key);
                 return { content: [{ type: "text", text: responseText }] };
             }
         );
     }
 
-    public register(option: McpLanchOption) {
+    public async register(option: McpLanchOption) {
         const {
             enableMemory = true,
             enableWebsearch = true
@@ -373,7 +397,7 @@ export class LagrangeMcpManager {
         this.registerBasic();
 
         if (enableMemory) {
-            this.registerMemory();
+            await this.registerMemory();
         }
 
         if (enableWebsearch) {
@@ -382,7 +406,7 @@ export class LagrangeMcpManager {
     }
 }
 
-export function createMcpServer(
+export async function createMcpServer(
     context: LagrangeContext<Lagrange.Message>,
     option: McpLanchOption = {}
 ) {
@@ -392,7 +416,7 @@ export function createMcpServer(
     });
 
     const mcpContainer = new LagrangeMcpManager(mcpServer, context);
-    mcpContainer.register(option);
+    await mcpContainer.register(option);
 
     const {
         host = "localhost",
