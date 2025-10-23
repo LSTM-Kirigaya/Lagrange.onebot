@@ -254,7 +254,6 @@ export class LagrangeMcpManager {
                     key: z
                         .string()
                         .trim()
-                        .min(1, "key 不能是空字符串")
                         .optional()
                         .describe("记忆的唯一标识（可选）。不传或空将自动生成 UUID"),
                 },

@@ -24,9 +24,6 @@
     },
     "dependencies": {
         "@lancedb/lancedb": "^0.22.2",
-        "@langchain/core": "^0.3.78",
-        "@langchain/langgraph": "^0.4.9",
-        "@langchain/langgraph-checkpoint-sqlite": "^1.0.0",
         "@modelcontextprotocol/sdk": "^1.18.2",
         "@ptkdev/logger": "^1.8.0",
         "@types/node": "22.15.16",

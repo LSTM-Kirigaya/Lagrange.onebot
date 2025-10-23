@@ -12,7 +12,7 @@ export type MemoryOptions = {
 export class Memory {
   DB_DIR: string = ".data";                // 数据库存储目录（建议为目录路径）
   TABLE: string = "memory";                          // 表名
-  MODEL: string = "Xenova/all-MiniLM-L6-v2";         // 384 维 sentence embedding
+  MODEL: string = "Xenova/paraphrase-multilingual-MiniLM-L12-v2";         // 使用的embedding模型
   k: number = 5;
 
   private _embedder: any | null = null;
