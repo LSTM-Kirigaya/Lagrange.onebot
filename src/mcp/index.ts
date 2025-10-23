@@ -7,16 +7,19 @@ import type * as Lagrange from '../core/type';
 import { Default } from './type';
 import * as Tool from './tool';
 import * as ExtraTool from './extraTool';
+import { Memory } from "./memory";
 
 import { atMessagePrompt, atQueryPrompt } from "./prompt";
 import { McpLanchOption } from "../core/dto";
 import { McpTransport } from "./transport";
 
 export class LagrangeMcpManager {
+    mem: Memory;
     constructor(
         private readonly server: McpServer,
         private readonly context: LagrangeContext<Lagrange.Message>,
     ) {
+        this.mem = new Memory();
     }
 
 
@@ -222,52 +225,142 @@ export class LagrangeMcpManager {
     }
 
     public registerMemory() {
-        // rag
+        // 1) 添加记忆
         this.server.registerTool(
-            'util_add_memory',
+            "util_add_memory",
             {
-                description: '将重要信息添加到长期记忆中。当用户分享关于自己、他人、事件的重要信息时(例如:姓名、喜好、经历、关系等),应该主动使用此工具记录,以便后续对话中查询使用。',
+                description:
+                    "将重要信息添加到【长期记忆】中。\n" +
+                    "当用户分享关于自己、他人、事件的重要事实（如：姓名、喜好、习惯、背景、关系、地点、时间等）时，应调用此工具进行存储，供后续检索与引用。\n" +
+                    "注意：每条 content 应是完整、明确、可读的一句话；避免含糊/碎片描述。",
                 inputSchema: {
-                    content: z.array(z.string()).describe('需要记忆的内容,每条信息应该是完整、清晰的描述'),
-                    groupId: z.string().describe('群号，如果你不知道群号是什么，使用default'),
-                    key: z.string().optional().describe('记忆的唯一标识（可选）'),
+                    content: z
+                        .array(
+                            z
+                                .string()
+                                .trim()
+                                .min(1, "每条记忆内容不能为空")
+                                .max(2000, "单条记忆不应超过 2000 字符")
+                                .describe("需要记忆的内容。建议一句一条，表达清晰、原子化。"),
+                        )
+                        .min(1, "至少提供一条记忆内容")
+                        .max(100, "单次添加不应超过 100 条")
+                        .describe("需要记忆的内容数组"),
+                    groupId: z
+                        .string()
+                        .trim()
+                        .default("default")
+                        .describe("命名空间/群组 ID（用于隔离不同用户/会话的记忆）。未知则使用 default"),
+                    key: z
+                        .string()
+                        .trim()
+                        .min(1, "key 不能是空字符串")
+                        .optional()
+                        .describe("记忆的唯一标识（可选）。不传或空将自动生成 UUID"),
                 },
             },
             async ({ content, groupId, key }) => {
-                const responseText = await ExtraTool.addMemory(content, [groupId], key);
-                return { content: [{ type: 'text', text: responseText }] };
+                const responseText = await this.mem.addMemory(content, [groupId], key);
+                // 维持你原有的返回结构
+                return { content: [{ type: "text", text: responseText }] };
             }
         );
 
+        // 2) 更新记忆
         this.server.registerTool(
-            'util_update_memory',
+            "util_update_memory",
             {
-                description: '更新记忆',
+                description:
+                    "更新【长期记忆】中指定 key 的内容（以命名空间 + key 为定位）。\n" +
+                    "该操作会先删除同 (namespace,key) 的旧记录，再写入新的 content 列表。",
                 inputSchema: {
-                    groupId: z.string().describe('群号，如果你不知道群号是什么，使用default'),
-                    key: z.string().describe('记忆的唯一标识'),
-                    content: z.array(z.string()).describe('需要记忆的内容'),
+                    groupId: z
+                        .string()
+                        .trim()
+                        .default("default")
+                        .describe("命名空间/群组 ID。未知则使用 default"),
+                    key: z
+                        .string()
+                        .trim()
+                        .min(1, "必须提供 key")
+                        .describe("记忆唯一标识（插入时由你指定，或系统自动生成）"),
+                    content: z
+                        .array(
+                            z
+                                .string()
+                                .trim()
+                                .min(1, "每条记忆内容不能为空")
+                                .max(2000, "单条记忆不应超过 2000 字符"),
+                        )
+                        .min(1, "至少提供一条新内容")
+                        .max(100, "单次更新不应超过 100 条")
+                        .describe("用于替换旧内容的新记忆内容数组"),
                 },
             },
             async ({ groupId, key, content }) => {
-                const responseText = await ExtraTool.updateMemory(groupId, key, content);
-                return { content: [{ type: 'text', text: responseText }] };
+                const responseText = await this.mem.updateMemory(groupId, key, content);
+                return { content: [{ type: "text", text: responseText }] };
             }
         );
 
-
+        // 3) 查询记忆
         this.server.registerTool(
-            'util_search_memory',
+            "util_search_memory",
             {
-                description: '从长期记忆中查询信息。当用户询问关于特定人物、事件、或之前对话中提到的信息时,应该首先使用此工具搜索相关记忆。例如:用户问"XXX是谁"、"XXX喜欢什么"、"上次说的那件事"等问题时,必须先调用此工具查询。',
-                inputSchema: {
-                    query: z.string().describe('搜索的关键字,可以是人名、事件名、或相关描述'),
-                    groupId: z.string().describe('群号，如果你不知道群号是什么，使用default'),
+                description:
+                    "从【长期记忆】中做语义搜索。\n" +
+                    "当用户询问与人物、事件、偏好、历史对话相关的问题（如“XXX 是谁”“他喜欢什么”“上次说的那件事是什么”），应优先调用本工具检索再作答。\n" +
+                    "检索基于语义相似度（非关键词），能找到表达不同但含义相近的记忆。",
+                inputSchema:{
+                    query: z
+                        .string()
+                        .trim()
+                        .min(1, "查询内容不能为空")
+                        .max(2000, "查询不应超过 2000 字符")
+                        .describe("查询文本（自然语言描述即可）"),
+                    groupId: z
+                        .string()
+                        .trim()
+                        .default("default")
+                        .describe("命名空间/群组 ID。未知则使用 default"),
+                    topK: z
+                        .number()
+                        .int()
+                        .min(1)
+                        .max(50)
+                        .default(5)
+                        .describe("返回条数上限（默认 5，最大 50）"),
                 },
             },
-            async ({ groupId, query }) => {
-                const responseText = await ExtraTool.queryMemory(query, [groupId]);
-                return { content: [{ type: 'text', text: responseText }] };
+            async ({ groupId, query, topK, }) => {
+                const responseText = await this.mem.queryMemory(query, [groupId], topK);
+                return { content: [{ type: "text", text: responseText }] };
+            }
+        );
+
+        // 4) 删除记忆
+        this.server.registerTool(
+            "util_delete_memory",
+            {
+                description:
+                    "从【长期记忆】中删除指定 (命名空间, key) 的所有记录。\n" +
+                    "用于撤回/更正错误记忆，或用户要求删除其个人信息时的合规清理。",
+                inputSchema: {
+                    groupId: z
+                        .string()
+                        .trim()
+                        .default("default")
+                        .describe("命名空间/群组 ID。未知则使用 default"),
+                    key: z
+                        .string()
+                        .trim()
+                        .min(1, "必须提供 key")
+                        .describe("记忆唯一标识"),
+                },
+            },
+            async ({ groupId, key }) => {
+                const responseText = await this.mem.deleteMemory(groupId, key);
+                return { content: [{ type: "text", text: responseText }] };
             }
         );
     }
