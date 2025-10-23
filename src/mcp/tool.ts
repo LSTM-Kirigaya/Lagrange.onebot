@@ -18,6 +18,10 @@ export async function sendGroupMsg(
             if (typeof msg.data.qq === 'number') {
                 msg.data.qq = String(msg.data.qq);
             }
+        } else if (msg.type === 'text') {
+            if (!msg.data.text.endsWith('\n')) {
+                msg.data.text += '\n';
+            }
         }
         return msg;
     });
