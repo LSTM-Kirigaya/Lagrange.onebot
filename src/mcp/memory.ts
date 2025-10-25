@@ -66,19 +66,17 @@ export class Memory {
   /**
    * 添加记忆
    * @param content 多条文本
-   * @param namespaces 命名空间（不传则 "default"）
+   * @param groupIds 群组 ID 列表（必须提供）
    * @param key 唯一标识（可选；不传则每条生成 uuid）
-   * @returns JSON：{ inserted, items: [{key, namespace}] }
+   * @returns JSON：{ inserted, items: [{key, groupId}] }
    */
-  async addMemory(content: string[], namespaces?: string[], key?: string): Promise<string> {
-    const nss = this.nsList(namespaces);
-
-    const items: Array<{ key: string; namespace: string; content: string; vector: number[]; ts: number }> = [];
-    for (const ns of nss) {
+  async addMemory(content: string[], groupIds: string[], key?: string): Promise<string> {
+    const items: Array<{ key: string; groupId: string; content: string; vector: number[]; ts: number }> = [];
+    for (const groupId of groupIds) {
       for (const text of content) {
         const k = key && key.trim() !== "" ? key : uuidv4();
         const vec = await this.embed(text);
-        items.push({ key: k, namespace: ns, content: text, vector: vec, ts: Date.now() });
+        items.push({ key: k, groupId, content: text, vector: vec, ts: Date.now() });
       }
     }
 
@@ -94,86 +92,115 @@ export class Memory {
       tbl = await this.createTableWithFirstRow(items[0]);
       if (items.length > 1) {
         await tbl.add(items.slice(1));
+        // 添加延迟确保数据写入
+        await new Promise(resolve => setTimeout(resolve, 300));
       }
       return JSON.stringify({
         inserted: items.length,
-        items: items.map(i => ({ key: i.key, namespace: i.namespace })),
+        items: items.map(i => ({ key: i.key, groupId: i.groupId })),
       });
     }
 
     await tbl.add(items);
+    // 给数据库一点时间来完成操作
+    await new Promise(resolve => setTimeout(resolve, 300));
     return JSON.stringify({
       inserted: items.length,
-      items: items.map(i => ({ key: i.key, namespace: i.namespace })),
+      items: items.map(i => ({ key: i.key, groupId: i.groupId })),
     });
   }
 
   /**
    * 查询记忆（语义检索）
    * @param query 查询文本
-   * @param namespaces 命名空间（可选；默认 "default"）
+   * @param groupIds 群组 ID 列表（必须提供）
    * @param k 返回条数（可选）
-   * @returns JSON：{ query, results: [{key, namespace, content, score}] }
+   * @returns JSON：{ query, results: [{key, groupId, content, score}] } 或 警告信息
    */
-  async queryMemory(query: string, namespaces?: string[], k = this.k): Promise<string> {
+  async queryMemory(query: string, groupIds: string[], k = this.k): Promise<string> {
     let tbl;
     try {
       tbl = await this.openTable();
     } catch {
-      // 表不存在时返回空结果
-      return JSON.stringify({ query, results: [] });
+      // 表不存在时返回警告
+      return JSON.stringify({
+        query,
+        warning: "当前记忆数据库中暂无任何记忆记录",
+        availableGroupIds: [],
+        results: []
+      });
     }
 
     const qv = await this.embed(query);
-    const nss = this.nsList(namespaces);
 
-    const where =
-      nss.length === 1
-        ? `namespace = '${this.escapeQuote(nss[0])}'`
-        : `namespace IN (${nss.map(s => `'${this.escapeQuote(s)}'`).join(",")})`;
+    try {
+      // 获取所有搜索结果（不用 WHERE 过滤，改用应用层过滤）
+      const groupIdSet = new Set(groupIds);
+      const allRows = await tbl
+        .search(qv)
+        .limit(k * 10) // 多取一些，因为后续要过滤
+        .toArray();
 
-    const rows = await tbl
-      .search(qv)
-      .where(where)
-      .limit(k)
-      .select(["key", "namespace", "content", "_distance"])
-      .toArray();
+      // 在应用层过滤 groupId
+      const rows = allRows.filter((r: any) => groupIdSet.has(r.groupId)).slice(0, k);
 
-    const results = rows.map((r: any) => ({
-      key: r.key,
-      namespace: r.namespace,
-      content: r.content,
-      score: r._distance ?? r.score ?? r.distance ?? null,
-    }));
+      if (rows.length === 0) {
+        // 查询无结果，获取所有可用的 groupIds
+        const allGroupIds = await this.getAllGroupIds(tbl);
+        return JSON.stringify({
+          query,
+          warning: `指定的群组 (${groupIds.join(', ')}) 中暂无相关记忆记录`,
+          availableGroupIds: allGroupIds,
+          results: []
+        });
+      }
 
-    return JSON.stringify({ query, results });
+      const results = rows.map((r: any) => ({
+        key: r.key,
+        groupId: r.groupId,
+        content: r.content,
+        score: r._distance ?? r.score ?? r.distance ?? null,
+      }));
+
+      return JSON.stringify({ query, results });
+    } catch (e) {
+      console.error(`[Memory] queryMemory error:`, e);
+      // 发生错误时尝试获取所有 groupIds
+      const allGroupIds = await this.getAllGroupIds(tbl);
+      return JSON.stringify({
+        query,
+        warning: `查询出错: ${(e as any).message}`,
+        availableGroupIds: allGroupIds,
+        results: []
+      });
+    }
   }
 
   /**
-   * 更新记忆（把相同 namespace+key 的旧记录删掉后，插入新内容）
-   * @param namespace 命名空间
+   * 更新记忆（把相同 groupId+key 的旧记录删掉后，插入新内容）
+   * @param groupId 群组 ID
    * @param key 唯一标识
    * @param content 新内容（多条）
    * @returns JSON：{ deleted, inserted }
    */
-  async updateMemory(namespace: string, key: string, content: string[]): Promise<string> {
+  async updateMemory(groupId: string, key: string, content: string[]): Promise<string> {
     let tbl;
     try {
       tbl = await this.openTable();
     } catch {
       // 若表不存在，则等价于插入（也可以直接返回 0 删除）
-      const insertedReport = await this.addMemory(content, [namespace], key);
+      const insertedReport = await this.addMemory(content, [groupId], key);
       const { inserted } = JSON.parse(insertedReport);
       return JSON.stringify({ deleted: 0, inserted });
     }
 
-    const where = `namespace = '${this.escapeQuote(namespace)}' AND key = '${this.escapeQuote(key)}'`;
+    const where = `"groupId" = '${this.escapeQuote(groupId)}' AND "key" = '${this.escapeQuote(key)}'`;
     const deleted = await tbl.delete(where);
 
     const rows = [];
     for (const text of content) {
       const vec = await this.embed(text);
-      rows.push({ key, namespace, content: text, vector: vec, ts: Date.now() });
+      rows.push({ key, groupId, content: text, vector: vec, ts: Date.now() });
     }
     let inserted = 0;
     if (rows.length > 0) {
@@ -186,11 +213,11 @@ export class Memory {
 
   /**
    * 删除记忆
-   * @param namespace 命名空间
+   * @param groupId 群组 ID
    * @param key 唯一标识
    * @returns JSON：{ deleted }
    */
-  async deleteMemory(namespace: string, key: string): Promise<string> {
+  async deleteMemory(groupId: string, key: string): Promise<string> {
     let tbl;
     try {
       tbl = await this.openTable();
@@ -199,7 +226,7 @@ export class Memory {
       return JSON.stringify({ deleted: 0 });
     }
 
-    const where = `namespace = '${this.escapeQuote(namespace)}' AND key = '${this.escapeQuote(key)}'`;
+    const where = `"groupId" = '${this.escapeQuote(groupId)}' AND "key" = '${this.escapeQuote(key)}'`;
     const deleted = await tbl.delete(where);
     return JSON.stringify({ deleted });
   }
@@ -233,14 +260,58 @@ export class Memory {
   // 用首条记录创建表（新版 API：必须提供非空 data）
   private async createTableWithFirstRow(firstRow: any) {
     const db = await connect(this.DB_DIR);
-    return await db.createTable({ name: this.TABLE, data: [firstRow] });
-    // 如需命名空间：第二个参数传 string[]，例如 []
-    // return await db.createTable({ name: this.TABLE, data: [firstRow] }, []);
+    const tbl = await db.createTable({ name: this.TABLE, data: [firstRow], mode: "overwrite" });
+    // 给数据库一点时间来完成操作
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return tbl;
   }
 
-  private nsList(namespaces?: string[]): string[] {
-    if (!namespaces || namespaces.length === 0) return ["default"];
-    return namespaces;
+  /**
+   * 检查指定的 groupIds 中哪些存在记录
+   */
+  private async getGroupIdsWithRecords(tbl: any, groupIds: string[]): Promise<string[]> {
+    try {
+      const where =
+        groupIds.length === 1
+          ? `"groupId" = '${this.escapeQuote(groupIds[0])}'`
+          : `"groupId" IN (${groupIds.map((s: string) => `'${this.escapeQuote(s)}'`).join(",")})`;
+
+      // 使用伪向量搜索
+      const zeroVector = new Array(384).fill(0);
+      const rows = await tbl
+        .search(zeroVector)
+        .where(where)
+        .select(["groupId"])
+        .limit(1000)
+        .toArray();
+
+      // 提取唯一的 groupIds
+      const validGroupIds = Array.from(new Set(rows.map((r: any) => r.groupId) as string[]));
+      return validGroupIds as string[];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /**
+   * 获取所有存在记录的 groupIds
+   */
+  private async getAllGroupIds(tbl: any): Promise<string[]> {
+    try {
+      // 使用一个伪向量搜索来获取所有记录
+      const zeroVector = new Array(384).fill(0); // 假设向量维度为 384
+      const rows = await tbl
+        .search(zeroVector)
+        .limit(10000) // 获取最多 10000 条
+        .select(["groupId"])
+        .toArray();
+
+      // 提取唯一的 groupIds
+      const allGroupIds = Array.from(new Set(rows.map((r: any) => r.groupId) as string[]));
+      return allGroupIds as string[];
+    } catch (e) {
+      return [];
+    }
   }
 
   private escapeQuote(s: string) {

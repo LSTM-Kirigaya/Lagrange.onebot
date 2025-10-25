@@ -270,8 +270,8 @@ export class LagrangeMcpManager {
                     groupId: z
                         .string()
                         .trim()
-                        .default("default")
-                        .describe("命名空间，即当前群聊 ID。未知则使用 default"),
+                        .min(1, "必须提供群聊 ID（群号）（群号）")
+                        .describe("群聊 ID（群号）"),
                     key: z
                         .string()
                         .trim()
@@ -291,14 +291,14 @@ export class LagrangeMcpManager {
             "util_update_memory",
             {
                 description:
-                    "更新【长期记忆】中指定 key 的内容（以命名空间 + key 为定位）。\n" +
-                    "该操作会先删除同 (namespace,key) 的旧记录，再写入新的 content 列表。",
+                    "更新【长期记忆】中指定 key 的内容（以群组 ID （群号）+ key 为定位）。\n" +
+                    "该操作会先删除同 (groupId,key) 的旧记录，再写入新的 content 列表。",
                 inputSchema: {
                     groupId: z
                         .string()
                         .trim()
-                        .default("default")
-                        .describe("命名空间，即当前群聊 ID。未知则使用 default"),
+                        .min(1, "必须提供群聊 ID（群号）")
+                        .describe("当前群聊 ID（群号）"),
                     key: z
                         .string()
                         .trim()
@@ -342,8 +342,8 @@ export class LagrangeMcpManager {
                     groupId: z
                         .string()
                         .trim()
-                        .default("default")
-                        .describe("命名空间，即当前群聊 ID。未知则使用 default"),
+                        .min(1, "必须提供群聊 ID（群号）")
+                        .describe("当前群聊 ID（群号）"),
                     topK: z
                         .number()
                         .int()
@@ -365,14 +365,14 @@ export class LagrangeMcpManager {
             "util_delete_memory",
             {
                 description:
-                    "从【长期记忆】中删除指定 (命名空间, key) 的所有记录。\n" +
+                    "从【长期记忆】中删除指定 (群组ID, key) 的所有记录。\n" +
                     "用于撤回/更正错误记忆，或用户要求删除其个人信息时的合规清理。",
                 inputSchema: {
                     groupId: z
                         .string()
                         .trim()
-                        .default("default")
-                        .describe("命名空间/群组 ID。未知则使用 default"),
+                        .min(1, "必须提供群聊 ID（群号）")
+                        .describe("群聊 ID（群号）"),
                     key: z
                         .string()
                         .trim()
