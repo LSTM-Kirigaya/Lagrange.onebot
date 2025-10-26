@@ -268,8 +268,7 @@ export class LagrangeMcpManager {
                         .max(100, "单次添加不应超过 100 条")
                         .describe("需要记忆的内容数组"),
                     groupId: z
-                        .string()
-                        .trim()
+                        .number()
                         .min(1, "必须提供群聊 ID（群号）（群号）")
                         .describe("群聊 ID（群号）"),
                     key: z
@@ -281,7 +280,7 @@ export class LagrangeMcpManager {
             },
             async ({ content, groupId, key }) => {
                 const mem = await this.getMem();
-                const responseText = await mem.addMemory(content, [groupId], key);
+                const responseText = await mem.addMemory(content, ['group' + groupId], key);
                 return { content: [{ type: "text", text: responseText }] };
             }
         );
@@ -295,8 +294,7 @@ export class LagrangeMcpManager {
                     "该操作会先删除同 (groupId,key) 的旧记录，再写入新的 content 列表。",
                 inputSchema: {
                     groupId: z
-                        .string()
-                        .trim()
+                        .number()
                         .min(1, "必须提供群聊 ID（群号）")
                         .describe("当前群聊 ID（群号）"),
                     key: z
@@ -319,7 +317,7 @@ export class LagrangeMcpManager {
             },
             async ({ groupId, key, content }) => {
                 const mem = await this.getMem();
-                const responseText = await mem.updateMemory(groupId, key, content);
+                const responseText = await mem.updateMemory('group' + groupId, key, content);
                 return { content: [{ type: "text", text: responseText }] };
             }
         );
@@ -340,8 +338,7 @@ export class LagrangeMcpManager {
                         .max(2000, "查询不应超过 2000 字符")
                         .describe("查询文本（自然语言描述即可）"),
                     groupId: z
-                        .string()
-                        .trim()
+                        .number()
                         .min(1, "必须提供群聊 ID（群号）")
                         .describe("当前群聊 ID（群号）"),
                     topK: z
@@ -355,7 +352,7 @@ export class LagrangeMcpManager {
             },
             async ({ groupId, query, topK, }) => {
                 const mem = await this.getMem();
-                const responseText = await mem.queryMemory(query, [groupId], topK);
+                const responseText = await mem.queryMemory(query, ['group' + groupId], topK);
                 return { content: [{ type: "text", text: responseText }] };
             }
         );
@@ -369,8 +366,7 @@ export class LagrangeMcpManager {
                     "用于撤回/更正错误记忆，或用户要求删除其个人信息时的合规清理。",
                 inputSchema: {
                     groupId: z
-                        .string()
-                        .trim()
+                        .number()
                         .min(1, "必须提供群聊 ID（群号）")
                         .describe("群聊 ID（群号）"),
                     key: z
@@ -382,7 +378,7 @@ export class LagrangeMcpManager {
             },
             async ({ groupId, key }) => {
                 const mem = await this.getMem();
-                const responseText = await mem.deleteMemory(groupId, key);
+                const responseText = await mem.deleteMemory('group' + groupId, key);
                 return { content: [{ type: "text", text: responseText }] };
             }
         );
