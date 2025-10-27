@@ -14,7 +14,7 @@ import { McpLanchOption } from "../core/dto";
 import { McpTransport } from "./transport";
 
 export class LagrangeMcpManager {
-    private mem: Memory | null = null; 
+    private mem: Memory | null = null;
     constructor(
         private readonly server: McpServer,
         private readonly context: LagrangeContext<Lagrange.Message>,
@@ -302,17 +302,11 @@ export class LagrangeMcpManager {
                         .trim()
                         .min(1, "必须提供 key")
                         .describe("记忆唯一标识（插入时由你指定，或系统自动生成）"),
-                    content: z
-                        .array(
-                            z
-                                .string()
-                                .trim()
-                                .min(1, "每条记忆内容不能为空")
-                                .max(2000, "单条记忆不应超过 2000 字符"),
-                        )
-                        .min(1, "至少提供一条新内容")
-                        .max(100, "单次更新不应超过 100 条")
-                        .describe("用于替换旧内容的新记忆内容数组"),
+                    content: z.string()
+                        .trim()
+                        .min(1, "每条记忆内容不能为空")
+                        .max(2000, "单条记忆不应超过 2000 字符"),
+
                 },
             },
             async ({ groupId, key, content }) => {
@@ -329,14 +323,14 @@ export class LagrangeMcpManager {
                 description:
                     "从【长期记忆】中做语义搜索。\n" +
                     "当用户询问与人物、事件、偏好、历史对话相关的问题（如“XXX 是谁”“他喜欢什么”“上次说的那件事是什么”），应优先调用本工具检索再作答。\n" +
-                    "检索基于语义相似度（非关键词），能找到表达不同但含义相近的记忆。",
+                    "检索基于语义相似度，能找到表达不同但含义相近的记忆。",
                 inputSchema: {
                     query: z
                         .string()
                         .trim()
                         .min(1, "查询内容不能为空")
                         .max(2000, "查询不应超过 2000 字符")
-                        .describe("查询文本（自然语言描述即可）"),
+                        .describe("查询文本或者关键字"),
                     groupId: z
                         .number()
                         .min(1, "必须提供群聊 ID（群号）")
@@ -365,10 +359,6 @@ export class LagrangeMcpManager {
                     "从【长期记忆】中删除指定 (群组ID, key) 的所有记录。\n" +
                     "用于撤回/更正错误记忆，或用户要求删除其个人信息时的合规清理。",
                 inputSchema: {
-                    groupId: z
-                        .number()
-                        .min(1, "必须提供群聊 ID（群号）")
-                        .describe("群聊 ID（群号）"),
                     key: z
                         .string()
                         .trim()
@@ -376,9 +366,9 @@ export class LagrangeMcpManager {
                         .describe("记忆唯一标识"),
                 },
             },
-            async ({ groupId, key }) => {
+            async ({ key }) => {
                 const mem = await this.getMem();
-                const responseText = await mem.deleteMemory('group' + groupId, key);
+                const responseText = await mem.deleteMemory(key);
                 return { content: [{ type: "text", text: responseText }] };
             }
         );

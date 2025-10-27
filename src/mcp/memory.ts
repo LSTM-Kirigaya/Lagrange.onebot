@@ -179,46 +179,38 @@ export class Memory {
 
   /**
    * 更新记忆（把相同 groupId+key 的旧记录删掉后，插入新内容）
-   * @param groupId 群组 ID
    * @param key 唯一标识
    * @param content 新内容（多条）
    * @returns JSON：{ deleted, inserted }
    */
-  async updateMemory(groupId: string, key: string, content: string[]): Promise<string> {
+  async updateMemory(groupId: string, key: string, content: string): Promise<string> {
     let tbl;
     try {
       tbl = await this.openTable();
     } catch {
       // 若表不存在，则等价于插入（也可以直接返回 0 删除）
-      const insertedReport = await this.addMemory(content, groupId, key);
+      const insertedReport = await this.addMemory([content], groupId, key);
       const { inserted } = JSON.parse(insertedReport);
       return JSON.stringify({ deleted: 0, inserted });
     }
 
-    const where = `"groupId" = '${this.escapeQuote(groupId)}' AND "key" = '${this.escapeQuote(key)}'`;
+    const where = `key = '${this.escapeQuote(key)}'`;
     const deleted = await tbl.delete(where);
 
-    const rows = [];
-    for (const text of content) {
-      const vec = await this.embed(text);
-      rows.push({ key, groupId, content: text, vector: vec, ts: Date.now() });
-    }
+    const vec = await this.embed(content);
+    const row = { key, groupId, content, vector: vec, ts: Date.now() };
     let inserted = 0;
-    if (rows.length > 0) {
-      await tbl.add(rows);
-      inserted = rows.length;
-    }
-
+    await tbl.add([row]);
+    inserted = 1;
     return JSON.stringify({ deleted, inserted });
   }
 
   /**
    * 删除记忆
-   * @param groupId 群组 ID
    * @param key 唯一标识
    * @returns JSON：{ deleted }
    */
-  async deleteMemory(groupId: string, key: string): Promise<string> {
+  async deleteMemory(key: string): Promise<string> {
     let tbl;
     try {
       tbl = await this.openTable();
@@ -227,7 +219,7 @@ export class Memory {
       return JSON.stringify({ deleted: 0 });
     }
 
-    const where = `"groupId" = '${this.escapeQuote(groupId)}' AND "key" = '${this.escapeQuote(key)}'`;
+    const where = `key = '${this.escapeQuote(key)}'`;
     const deleted = await tbl.delete(where);
     return JSON.stringify({ deleted });
   }
@@ -277,7 +269,7 @@ export class Memory {
       const rows = await tbl
         .search(zeroVector)
         .limit(10000) // 获取最多 10000 条
-        .select(["groupId"])
+        .select(["groupId","_distance"])
         .toArray();
 
       // 提取唯一的 groupIds
