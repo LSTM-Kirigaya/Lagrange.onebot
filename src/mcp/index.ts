@@ -280,7 +280,7 @@ export class LagrangeMcpManager {
             },
             async ({ content, groupId, key }) => {
                 const mem = await this.getMem();
-                const responseText = await mem.addMemory(content, ['group' + groupId], key);
+                const responseText = await mem.addMemory(content, 'group' + groupId, key);
                 return { content: [{ type: "text", text: responseText }] };
             }
         );

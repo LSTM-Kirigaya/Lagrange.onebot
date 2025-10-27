@@ -66,19 +66,18 @@ export class Memory {
   /**
    * 添加记忆
    * @param content 多条文本
-   * @param groupIds 群组 ID 列表（必须提供）
+   * @param groupId 群组 ID（必须提供）
    * @param key 唯一标识（可选；不传则每条生成 uuid）
    * @returns JSON：{ inserted, items: [{key, groupId}] }
    */
-  async addMemory(content: string[], groupIds: string[], key?: string): Promise<string> {
+  async addMemory(content: string[], groupId: string, key?: string): Promise<string> {
     const items: Array<{ key: string; groupId: string; content: string; vector: number[]; ts: number }> = [];
-    for (const groupId of groupIds) {
-      for (const text of content) {
-        const k = key && key.trim() !== "" ? key : uuidv4();
-        const vec = await this.embed(text);
-        items.push({ key: k, groupId, content: text, vector: vec, ts: Date.now() });
-      }
+    for (const text of content) {
+      const k = key && key.trim() !== "" ? key : uuidv4();
+      const vec = await this.embed(text);
+      items.push({ key: k, groupId, content: text, vector: vec, ts: Date.now() });
     }
+
 
     if (items.length === 0) {
       return JSON.stringify({ inserted: 0, items: [] });
@@ -134,14 +133,16 @@ export class Memory {
     const qv = await this.embed(query);
 
     try {
-      // 获取所有搜索结果（不用 WHERE 过滤，改用应用层过滤）
+      // LanceDB 的 .search().where() 在某些情况下可能不生效
+      // 因此改用应用层过滤：先取足够多的候选，再过滤 groupId
       const groupIdSet = new Set(groupIds);
+      const limitK = Math.max(k * 100, 1000);
       const allRows = await tbl
         .search(qv)
-        .limit(k * 10) // 多取一些，因为后续要过滤
+        .limit(limitK)
         .toArray();
 
-      // 在应用层过滤 groupId
+      // 在应用层过滤 groupId 并截取 topK
       const rows = allRows.filter((r: any) => groupIdSet.has(r.groupId)).slice(0, k);
 
       if (rows.length === 0) {
@@ -189,7 +190,7 @@ export class Memory {
       tbl = await this.openTable();
     } catch {
       // 若表不存在，则等价于插入（也可以直接返回 0 删除）
-      const insertedReport = await this.addMemory(content, [groupId], key);
+      const insertedReport = await this.addMemory(content, groupId, key);
       const { inserted } = JSON.parse(insertedReport);
       return JSON.stringify({ deleted: 0, inserted });
     }
@@ -264,33 +265,6 @@ export class Memory {
     // 给数据库一点时间来完成操作
     await new Promise(resolve => setTimeout(resolve, 500));
     return tbl;
-  }
-
-  /**
-   * 检查指定的 groupIds 中哪些存在记录
-   */
-  private async getGroupIdsWithRecords(tbl: any, groupIds: string[]): Promise<string[]> {
-    try {
-      const where =
-        groupIds.length === 1
-          ? `"groupId" = '${this.escapeQuote(groupIds[0])}'`
-          : `"groupId" IN (${groupIds.map((s: string) => `'${this.escapeQuote(s)}'`).join(",")})`;
-
-      // 使用伪向量搜索
-      const zeroVector = new Array(384).fill(0);
-      const rows = await tbl
-        .search(zeroVector)
-        .where(where)
-        .select(["groupId"])
-        .limit(1000)
-        .toArray();
-
-      // 提取唯一的 groupIds
-      const validGroupIds = Array.from(new Set(rows.map((r: any) => r.groupId) as string[]));
-      return validGroupIds as string[];
-    } catch (e) {
-      return [];
-    }
   }
 
   /**
