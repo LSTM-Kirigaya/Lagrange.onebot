@@ -154,10 +154,6 @@ const server = LagrangeFactory.create([
 server.onMounted(async c => {
     await c.sendPrivateMsg(qq_users.JIN_HUI, 'Successfully Login, TIP online');
 
-    // 使用新实现的函数获取当天消息
-    const todaysMessages = await getTodaysGroupMessages(c, qq_groups.OPENMCP_DEV);
-    fs.writeFileSync('todays_messages.json', JSON.stringify(todaysMessages, null, 2));
-
     // 原有代码保留作参考
     const res = await c.getGroupMsgHistory(qq_groups.OPENMCP_DEV, undefined, 20);
     for (const msg of res.data.messages) {
