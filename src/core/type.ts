@@ -606,6 +606,18 @@ export interface GetMsgResponse {
     message: string | Send.Default[];
 }
 
+// response type for get_group_msg_history
+export interface GetGroupMsgHistoryResponse {
+    // 消息列表
+    messages: GetMsgResponse[];
+}
+
+// response type for get_friend_msg_history
+export interface GetFriendMsgHistoryResponse {
+    // 消息列表
+    messages: GetMsgResponse[];
+}
+
 // response type for get_forward_msg
 export interface GetForwardMsgResponse {
     // 消息内容，使用 [消息的数组格式](../message/any[].md) 表示，数组中的消息段全部为 [`node` 消息段](../message/segment.md#合并转发自定义节点)

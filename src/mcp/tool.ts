@@ -89,17 +89,40 @@ export async function getLatestMessages(
     group_id: number,
     limit: number,
 ) {
-    const realmService = context.realmService;
-    if (!realmService) {
-        return 'realm 数据库未初始化，无法获取最新的信息';
-    }
+    const res = await context.getGroupMsgHistory(group_id, undefined, limit);
 
-    const filterContext = context as LagrangeContext<Lagrange.GroupMessage | Lagrange.PrivateMessage>;
-    const queryData = await realmService.getLatestGroupMessages(filterContext, group_id, limit);
-
-    if (!queryData) {
+    if (!res?.data?.messages) {
         return '未找到数据';
     }
 
-    return JSON.stringify(queryData, null, 2);
+    const messages = [];
+
+    for (const msg of res.data.messages) {
+        let content = '';
+        if (typeof msg.message === 'string') {
+            content = msg.message;
+        } else if (Array.isArray(msg.message)) {
+            content = msg.message
+                .map(segment => {
+                    if (segment.type === 'text') {
+                        return segment.data.text;
+                    } else if (segment.type === 'image') {
+                        return `[图片]`;
+                    } else if (segment.type === 'at') {
+                        return `[at]`;
+                    }
+                })
+                .join('');
+        }
+
+        const user = await context.getGroupMemberInfo(group_id, msg.sender.user_id, false);
+
+        messages.push({
+            sender: user.data.nickname,
+            time: new Date(msg.time * 1000).toISOString(),
+            content: content
+        });
+    }
+
+    return JSON.stringify(messages, null, 2);
 }

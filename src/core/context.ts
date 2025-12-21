@@ -37,14 +37,14 @@ export class LagrangeContext<T extends Lagrange.Message> {
         this.realmService = lagrangeServer.realmService;
     }
 
-    public send<T>(apiJSON: Lagrange.ApiJSON): Promise<Lagrange.CommonResponse<T> | Error> {
+    public send<T>(apiJSON: Lagrange.ApiJSON): Promise<Lagrange.CommonResponse<T>> {
         const ws = this.ws;
         const fin = this.fin;
         const action = apiJSON.action || 'unknown_action';
         const start = Date.now();
         const grad = getGrad();
 
-        return new Promise<Lagrange.CommonResponse<T> | Error>(resolve => {
+        return new Promise<Lagrange.CommonResponse<T>>((resolve, reject) => {
             ws.onmessage = event => {
 
                 const payload = JSON.parse(event.data.toString());
@@ -97,7 +97,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
                                 chalk.gray(`[${apiJSON.action}]`)
                             );
                         }
-                        resolve(err);
+                        reject(err);
                     }
                 });
             } else {
@@ -241,6 +241,44 @@ export class LagrangeContext<T extends Lagrange.Message> {
         return this.send<Lagrange.GetMsgResponse>({
             action: 'get_msg',
             params: { message_id }
+        });
+    }
+
+    /**
+     * @description 获取群消息历史记录
+     * @param group_id 群号
+     * @param message_seq 消息序号
+     * @param count 获取数量
+     * @param reverse_order 是否倒序
+     */
+    public getGroupMsgHistory(
+        group_id: number,
+        message_seq?: number,
+        count: number = 20,
+        reverse_order: boolean = false
+    ) {
+        return this.send<Lagrange.GetGroupMsgHistoryResponse>({
+            action: 'get_group_msg_history',
+            params: { group_id, message_seq, count, reverse_order }
+        });
+    }
+
+    /**
+     * @description 获取好友消息历史记录
+     * @param user_id 用户QQ号
+     * @param message_seq 消息序号
+     * @param count 获取数量
+     * @param reverse_order 是否倒序
+     */
+    public getFriendMsgHistory(
+        user_id: number,
+        message_seq?: number,
+        count: number = 20,
+        reverse_order: boolean = false
+    ) {
+        return this.send<Lagrange.GetFriendMsgHistoryResponse>({
+            action: 'get_friend_msg_history',
+            params: { user_id, message_seq, count, reverse_order }
         });
     }
 
@@ -688,6 +726,8 @@ export class LagrangeContext<T extends Lagrange.Message> {
 
         return undefined;
     }
+
+
 
     /**
      * @description 等待
