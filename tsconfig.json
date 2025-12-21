@@ -9,7 +9,8 @@
         "declaration": true,
         "declarationDir": "dist",
         "typeRoots": ["./types"],
-        "removeComments": false
+        "removeComments": false,
+        "skipLibCheck": true
     },
     "include": [
         "src/**/*"
