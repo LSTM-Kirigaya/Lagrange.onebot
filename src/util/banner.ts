@@ -10,7 +10,7 @@ export function getGrad(): ReturnType<typeof gradient> {
 /**
  * 打印启动 Banner
  */
-export function showBanner(text = "LAGRANGE.ONEBOT") {
+export function showBanner(text = "L.BOT") {
     // 生成字符画
     const banner = figlet.textSync(text, {
         horizontalLayout: "full",

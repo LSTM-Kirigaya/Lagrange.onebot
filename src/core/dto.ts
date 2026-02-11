@@ -38,6 +38,11 @@ export interface McpLanchOption {
      * @description 是否启动 websearch
      */
     enableWebsearch?: boolean
+
+    /**
+     * 代理地址（用于从 Hugging Face 下载 Memory 模型），如 "7897" 或 "http://127.0.0.1:7897"
+     */
+    proxy?: string
 }
 
 /**
@@ -64,12 +69,7 @@ export interface ILaunchConfig {
     db?: string
 
     /**
-     * @description 是否启动 MCP
-     */
-    mcp?: boolean
-
-    /**
-     * @description MCP 启动参数
+     * @description MCP 启动参数；传入即启用 MCP，不传则不启动
      */
     mcpOption?: McpLanchOption
 

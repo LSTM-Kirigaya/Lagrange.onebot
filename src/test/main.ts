@@ -166,7 +166,6 @@ server.launch({
         'appsettings.json'
     ),
 
-    mcp: true,
     mcpOption: {
         enableMemory: true,
         enableWebsearch: true,

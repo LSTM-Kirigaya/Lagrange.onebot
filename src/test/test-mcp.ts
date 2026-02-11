@@ -1,95 +1,62 @@
-/**
- * @description 测试 MCP Server 启动
- * @author 测试文件
- * 
- * 这个文件用于测试 MCP Server 的启动，不需要真实的 Lagrange 连接
- */
+import path from 'path';
+import { LagrangeFactory, mapper, LagrangeContext, PrivateMessage } from '..';
+import { qq_groups, qq_users } from './global';
 
-import { createMcpServer } from '../mcp';
-import { LagrangeContext } from '../core/context';
-import lagrangeServer from '../core/context';
-import type * as Lagrange from '../core/type';
-import WebSocket from 'ws';
+/** 仅用于正向 WS 的发送图片/接收消息测试 */
+class ForwardWsTestChannel {
+    @mapper.onPrivateUser(qq_users.JIN_HUI)
+    async handleTestPrivate(c: LagrangeContext<PrivateMessage>) {
+        const raw = c.getRawText().trim();
+        // 打印收到的消息（含类型与内容，便于查看图片等）
+        console.log('[收到私聊] raw_message:', c.message.raw_message);
+        console.log('[收到私聊] message 段:', JSON.stringify(c.message.message, null, 2));
 
-// 主函数 - 直接启动 MCP Server
-async function startMcpServer() {
-    console.log('=================================');
-    console.log('启动 MCP Server (测试模式)');
-    console.log('=================================\n');
-
-    try {
-        // 初始化 lagrangeServer 的 ws 属性以通过检查
-        // 创建一个 mock WebSocket
-        const mockWs = {
-            send: (data: any, callback?: (err?: Error) => void) => {
-                console.log('[Mock] 发送消息:', JSON.stringify(data).substring(0, 100));
-                if (callback) callback();
-            },
-            on: () => {},
-            onmessage: null,
-            readyState: 1
-        } as any as WebSocket;
-
-        // 设置 lagrangeServer 的 ws
-        (lagrangeServer as any).ws = mockWs;
-        (lagrangeServer as any).qq = 123456789;
-
-        // 创建一个简单的 mock context (只需要满足基本类型)
-        const mockMessage = {
-            post_type: 'message',
-            message_type: 'group',
-            sub_type: 'normal',
-            message_id: 12345,
-            group_id: 123456789,
-            user_id: 987654321,
-            anonymous: null,
-            message: [{ type: 'text', data: { text: 'test' } }],
-            raw_message: 'test',
-            font: 0,
-            time: Date.now(),
-            self_id: 123456789
-        } as Lagrange.GroupMessage;
-
-        const mockContext = new LagrangeContext(mockMessage);
-
-        // 配置 MCP 选项
-        const mcpOption = {
-            host: 'localhost',
-            port: 3010,
-            enableMemory: true,     // 简化测试,关闭内存功能
-            enableWebsearch: true   // 简化测试,关闭网页搜索功能
-        };
-
-        console.log('配置:', JSON.stringify(mcpOption, null, 2));
-        console.log('\n启动 MCP Server...\n');
-        
-        // 创建并启动 MCP server
-        const transport = await createMcpServer(mockContext, mcpOption);
-        
-        console.log('✓ MCP Server 启动成功!');
-        console.log(`✓ 服务地址: http://${mcpOption.host}:${mcpOption.port}`);
-        console.log('\n=================================');
-        console.log('MCP Server 正在运行...');
-        console.log('按 Ctrl+C 停止服务');
-        console.log('=================================\n');
-
-        // 保持进程运行
-        process.on('SIGINT', () => {
-            console.log('\n\n正在关闭 MCP Server...');
-            transport.close();
-            console.log('MCP Server 已关闭');
-            process.exit(0);
-        });
-
-    } catch (error) {
-        console.error('✗ 启动失败:', error);
-        process.exit(1);
+        c.finishSession();
     }
 }
 
-// 如果直接运行这个文件
-if (require.main === module) {
-    startMcpServer().catch(console.error);
+async function loadEnv() {
+    try {
+        await import('dotenv/config');
+    } catch {
+        // dotenv 未安装时跳过，使用系统环境变量
+    }
 }
 
-export { startMcpServer };
+async function main() {
+    await loadEnv();
+
+    const host = process.env.LAGRANGE_WS_HOST;
+    const port = process.env.LAGRANGE_WS_PORT;
+    const access_token = process.env.LAGRANGE_WS_ACCESS_TOKEN;
+    const type = (process.env.LAGRANGE_WS_TYPE || 'forward-websocket') as 'forward-websocket' | 'backward-websocket';
+    const pathRoute = process.env.LAGRANGE_WS_PATH;
+
+    if (!host || !port) {
+        console.error('请配置 LAGRANGE_WS_HOST 和 LAGRANGE_WS_PORT（.env 或环境变量），并确保已安装 dotenv: npm install dotenv');
+        process.exit(1);
+    }
+
+    const server = LagrangeFactory.create([ForwardWsTestChannel]);
+
+    server.onMounted(async (c) => {
+        await c.sendPrivateMsg(qq_users.JIN_HUI, 'Forward WS 已连接，TIP online');
+    });    
+
+    server.launch({
+        type,
+        host,
+        port: Number(port),
+        ...(access_token ? { access_token } : {}),
+        ...(type === 'backward-websocket' && pathRoute ? { path: pathRoute } : {}),
+
+        mcpOption: {
+            enableMemory: true,
+            enableWebsearch: true,
+            host: '0.0.0.0',
+            port: 3010,
+        }
+    });
+}
+
+main();

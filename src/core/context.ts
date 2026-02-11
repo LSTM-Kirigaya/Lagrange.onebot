@@ -887,7 +887,7 @@ export class LagrangeServer {
         const {
             configPath = path.join(process.env.LAGRANGE_CORE_HOME || '', 'appsettings.json'),
             db = 'lagrange-0-db',
-            mcp = false,
+            mcpOption,
             logger = true,
             type: configType,
             host: configHost,
@@ -947,11 +947,11 @@ export class LagrangeServer {
 
         await this.run(launchOption);
 
-        if (mcp) {
+        if (mcpOption !== undefined) {
             const { createMcpServer } = await import('../mcp');
             const transport = await createMcpServer(
                 new LagrangeContext({ post_type: 'meta_event' }),
-                config?.mcpOption
+                mcpOption
             );
 
             this.onUnmounted(c => transport.close());

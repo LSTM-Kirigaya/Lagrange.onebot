@@ -9,6 +9,8 @@ export type MemoryOptions = {
   k?: number;
   cacheDir?: string;         // ← 可选：transformers.js 缓存目录
   warmupText?: string;       // ← 可选：预热使用的短文本
+  /** 代理地址，如 "7897" 或 "http://127.0.0.1:7897"，用于从 Hugging Face 下载模型 */
+  proxy?: string;
 };
 
 export class Memory {
@@ -20,6 +22,8 @@ export class Memory {
   private _inited = false;
   private _warm = false;
   private _warmupText = "你好";
+  private _proxy?: string;
+  private static _proxyDispatcherDone = false;
 
   constructor(opts: MemoryOptions = {}) {
     if (opts.DB_DIR) this.DB_DIR = opts.DB_DIR;
@@ -27,6 +31,7 @@ export class Memory {
     if (opts.MODEL) this.MODEL = opts.MODEL;
     if (typeof opts.k === "number") this.k = opts.k;
     if (opts.warmupText) this._warmupText = opts.warmupText;
+    if (opts.proxy) this._proxy = opts.proxy;
 
     // 配置 transformers.js 的缓存目录（可选）
     if (opts.cacheDir) {
@@ -50,6 +55,18 @@ export class Memory {
    */
   async init() {
     if (this._inited) return;
+    // 使用代理时让 Node fetch 走代理（undici EnvHttpProxyAgent 读取 HTTPS_PROXY）
+    if (!Memory._proxyDispatcherDone) {
+      const proxyUrl = this._proxy ?? process.env.HTTPS_PROXY ?? process.env.HTTP_PROXY;
+      if (proxyUrl) {
+        const url = /^https?:\/\//i.test(proxyUrl) ? proxyUrl : `http://127.0.0.1:${proxyUrl}`;
+        process.env.HTTPS_PROXY = process.env.HTTPS_PROXY ?? url;
+        process.env.HTTP_PROXY = process.env.HTTP_PROXY ?? url;
+        const { setGlobalDispatcher, EnvHttpProxyAgent } = await import("undici");
+        setGlobalDispatcher(new EnvHttpProxyAgent());
+        Memory._proxyDispatcherDone = true;
+      }
+    }
     this._embedder = await pipeline("feature-extraction", this.MODEL);
     this._inited = true;
   }

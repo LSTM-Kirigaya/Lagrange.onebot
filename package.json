@@ -20,7 +20,8 @@
         "build": "tsc",
         "start": "serve dist",
         "serve": "tsc -w & serve dist",
-        "startmcp": "ts-node src/test/test-mcp.ts"
+        "startmcp": "ts-node src/test/test-mcp.ts",
+        "testmcp:3002": "ts-node src/test/test-mcp-3002.ts"
     },
     "dependencies": {
         "@lancedb/lancedb": "^0.22.2",
@@ -40,6 +41,8 @@
         "node-schedule": "^2.1.1",
         "ora": "^9.0.0",
         "pm2": "^5.4.0",
+        "sharp": "^0.34.5",
+        "undici": "^7.21.0",
         "uuid": "^13.0.0",
         "ws": "^8.17.0",
         "yaml": "^2.4.2"
