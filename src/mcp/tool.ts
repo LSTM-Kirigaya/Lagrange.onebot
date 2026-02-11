@@ -89,7 +89,7 @@ export async function getLatestMessages(
     group_id: number,
     limit: number,
 ) {
-    const res = await context.getGroupMsgHistory(group_id, undefined, limit);
+    const res = await context.getGroupMsgHistory({ group_id, count: limit });
 
     if (!res?.data?.messages) {
         return '未找到数据';

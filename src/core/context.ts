@@ -10,19 +10,14 @@ import { getGroupMessageImagePath, getPrivateMessageImagePath, getUserAvatarPath
 import lagrangeMapper from './mapper';
 
 import type * as Lagrange from './type';
-import { GetRawTextConfig, ILaunchConfig, LaunchOption } from './dto';
+import { GetFriendMsgHistoryParams, GetGroupMsgHistoryParams, GetRawTextConfig, ILaunchConfig, LaunchOption } from './dto';
 import path from 'path';
-import { createMcpServer } from '../mcp';
 import { getGrad, showBanner } from '../util/banner';
-import { RealmService } from '../util/realm';
-
-
 export class LagrangeContext<T extends Lagrange.Message> {
     public ws: WebSocket;
     public fin: boolean;
     public message: T;
     public qq?: number;
-    public realmService?: RealmService;
 
     constructor(message: T) {
         this.message = message;
@@ -33,8 +28,6 @@ export class LagrangeContext<T extends Lagrange.Message> {
 
         this.ws = lagrangeServer.ws;
         this.qq = lagrangeServer.qq;
-
-        this.realmService = lagrangeServer.realmService;
     }
 
     public send<T>(apiJSON: Lagrange.ApiJSON): Promise<Lagrange.CommonResponse<T>> {
@@ -53,7 +46,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
 
                     // if (SHOW_LOGGER) {
                     //     console.log(
-                    //         grad('LAGRANGE.CORE'),
+                    //         grad('LAGRANGE BACKEND'),
                     //         chalk.cyan('→ Response'),
                     //         chalk.gray(`[${apiJSON.action}]`),
                     //         chalk.green(`(${duration}ms)`)
@@ -80,7 +73,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
                         : chalk.gray('no params');
 
                     console.log(
-                        grad('LAGRANGE.CORE'),
+                        grad('LAGRANGE BACKEND'),
                         chalk.yellow('← Send'),
                         chalk.gray(`[${apiJSON.action}]`),
                         displayParams
@@ -92,7 +85,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
                         logger.warning('ws 发送消息错误, 是否在 LaunchOption 中缺少 AccessToken 参数?');
                         if (SHOW_LOGGER) {
                             console.log(
-                                grad('LAGRANGE.CORE'),
+                                grad('LAGRANGE BACKEND'),
                                 chalk.red('✖ Send Failed'),
                                 chalk.gray(`[${apiJSON.action}]`)
                             );
@@ -109,7 +102,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
                 
                 if (SHOW_LOGGER) {
                     console.log(
-                        chalk.bgGray.white.bold('LAGRANGE.CORE'),
+                        chalk.bgGray.white.bold('LAGRANGE BACKEND'),
                         chalk.red('⚠ Session Ended'),
                         chalk.gray(`[${action}]`)
                     );
@@ -246,39 +239,23 @@ export class LagrangeContext<T extends Lagrange.Message> {
 
     /**
      * @description 获取群消息历史记录
-     * @param group_id 群号
-     * @param message_seq 消息序号
-     * @param count 获取数量
-     * @param reverse_order 是否倒序
+     * @param params group_id 群号；message_seq 起始消息序号（可选）；message_id 起始消息ID lgl（可选）；count 消息数量
      */
-    public getGroupMsgHistory(
-        group_id: number,
-        message_seq?: number,
-        count: number = 20,
-        reverse_order: boolean = false
-    ) {
+    public getGroupMsgHistory(params: GetGroupMsgHistoryParams): Promise<Lagrange.CommonResponse<Lagrange.GetGroupMsgHistoryResponse>> {
         return this.send<Lagrange.GetGroupMsgHistoryResponse>({
             action: 'get_group_msg_history',
-            params: { group_id, message_seq, count, reverse_order }
+            params: { group_id: params.group_id, message_seq: params.message_seq, message_id: params.message_id, count: params.count }
         });
     }
 
     /**
      * @description 获取好友消息历史记录
-     * @param user_id 用户QQ号
-     * @param message_seq 消息序号
-     * @param count 获取数量
-     * @param reverse_order 是否倒序
+     * @param params user_id 对方 QQ 号；message_seq 起始消息序号（可选）；message_id 起始消息ID lgl（可选）；count 消息数量
      */
-    public getFriendMsgHistory(
-        user_id: number,
-        message_seq?: number,
-        count: number = 20,
-        reverse_order: boolean = false
-    ) {
+    public getFriendMsgHistory(params: GetFriendMsgHistoryParams): Promise<Lagrange.CommonResponse<Lagrange.GetFriendMsgHistoryResponse>> {
         return this.send<Lagrange.GetFriendMsgHistoryResponse>({
             action: 'get_friend_msg_history',
-            params: { user_id, message_seq, count, reverse_order }
+            params: { user_id: params.user_id, message_seq: params.message_seq, message_id: params.message_id, count: params.count }
         });
     }
 
@@ -759,7 +736,6 @@ export class LagrangeServer {
         public config?: LaunchOption,
         public qq?: number,
         public nickname?: string,
-        public realmService?: RealmService,
         private readonly controllers: any[] = [],
         private readonly cycleCbMap: Map<CycleEvent, CycleCb[]> = new Map(),
         private readonly timeScheduleCbMap: timeScheduleCb[] = [],
@@ -905,50 +881,74 @@ export class LagrangeServer {
 
     /**
      * @description 启动 QQ 服务进程
+     * 连接参数（type/host/port/access_token/path）与配置文件同时传入时，以传入参数为准
      */
     public async launch(config?: ILaunchConfig) {
-        // 检查配置文件路径
         const {
             configPath = path.join(process.env.LAGRANGE_CORE_HOME || '', 'appsettings.json'),
             db = 'lagrange-0-db',
             mcp = false,
             logger = true,
+            type: configType,
+            host: configHost,
+            port: configPort,
+            access_token: configAccessToken,
+            path: configPathRoute,
         } = config || {};
 
-        if (!fs.existsSync(configPath)) {
+        const configFileExists = fs.existsSync(configPath);
+        const hasDirectParams = configType != null && configHost != null && configPort != null;
+
+        let launchOption: LaunchOption;
+
+        if (configFileExists) {
+            const lagrangeHome = path.dirname(configPath);
+            const buffer = fs.readFileSync(configPath, 'utf-8');
+            const appSettings = JSON.parse(buffer);
+            const impl = appSettings.Implementations[0];
+
+            launchOption = {
+                type: impl.Type === 'ReverseWebSocket' ? 'backward-websocket' : 'forward-websocket',
+                host: impl.Host,
+                port: impl.Port
+            } as LaunchOption;
+            if (impl.AccessToken != null) {
+                launchOption.access_token = impl.AccessToken;
+            }
+            if (launchOption.type === 'backward-websocket' && impl.Path != null) {
+                (launchOption as import('./dto').BackwardWebsocketLaunchOption).path = impl.Path;
+            }
+
+            if (configType != null) launchOption.type = configType;
+            if (configHost != null) launchOption.host = configHost;
+            if (configPort != null) launchOption.port = configPort;
+            if (configAccessToken !== undefined) launchOption.access_token = configAccessToken;
+            if (launchOption.type === 'backward-websocket' && configPathRoute !== undefined) {
+                (launchOption as import('./dto').BackwardWebsocketLaunchOption).path = configPathRoute;
+            }
+        } else if (hasDirectParams) {
+            launchOption = {
+                type: configType!,
+                host: configHost!,
+                port: configPort!,
+            } as LaunchOption;
+            if (configAccessToken !== undefined) launchOption.access_token = configAccessToken;
+            if (configType === 'backward-websocket' && configPathRoute !== undefined) {
+                (launchOption as import('./dto').BackwardWebsocketLaunchOption).path = configPathRoute;
+            } else if (configType === 'backward-websocket') {
+                (launchOption as import('./dto').BackwardWebsocketLaunchOption).path = '/onebot/v11/ws';
+            }
+        } else {
             console.log(
-                chalk.red('请检查 appsettings.json 的路径是否正确')
+                chalk.red('请检查 appsettings.json 的路径是否正确，或传入连接参数（type、host、port）')
             );
             return;
         }
 
-        // 获取 home 路径
-        const lagrangeHome = path.dirname(configPath);
-
-        // 连接数据库
-        const realmService = new RealmService({
-            path: path.join(lagrangeHome, db, '.realm'),
-            schemaVersion: 0,
-            encryptionKey: undefined
-        });
-        await realmService.connect();
-
-        this.realmService = realmService;
-
-        // 根据配置选择启动
-        const buffer = fs.readFileSync(configPath, 'utf-8');
-        const appSettings = JSON.parse(buffer);
-        const impl = appSettings.Implementations[0];
-
-        const launchOption: LaunchOption = {
-            type: impl.Type === 'ReverseWebSocket' ? 'backward-websocket' : 'forward-websocket',
-            host: impl.Host,
-            port: impl.Port
-        } as LaunchOption;
-
         await this.run(launchOption);
 
         if (mcp) {
+            const { createMcpServer } = await import('../mcp');
             const transport = await createMcpServer(
                 new LagrangeContext({ post_type: 'meta_event' }),
                 config?.mcpOption

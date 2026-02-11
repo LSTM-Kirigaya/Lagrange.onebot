@@ -1,7 +1,5 @@
-import path from 'node:path';
-import { mapper, LagrangeContext, PrivateMessage, GroupMessage, plugins, AddFriendOrGroupMessage, ApproveMessage, LagrangeFactory } from '..';
-import { FAAS_BASE_URL, qq_groups, qq_users } from './global';
-import axios from 'axios';
+import { mapper, LagrangeContext, PrivateMessage, GroupMessage, AddFriendOrGroupMessage, ApproveMessage } from '..';
+import { qq_groups, qq_users } from './global';
 
 export class TestChannel {
     @mapper.onPrivateUser(qq_users.JIN_HUI)
@@ -22,10 +20,6 @@ export class TestChannel {
 
                 case 'pub':
                     // await publishOpenMCP(c);
-                    break;
-
-                case 'openmcp-sum':
-                    await exportTodayGroupMessagesPdf(c, qq_groups.OPENMCP_DEV, qq_groups.TEST_CHANNEL);
                     break;
 
                 default:
@@ -66,36 +60,5 @@ export class TestChannel {
     @mapper.onGroupIncrease(qq_groups.TEST_CHANNEL)
     async handleGroupIncrease(c: LagrangeContext<ApproveMessage>) {
         console.log(`user: ${c.message.user_id} join the group`);
-    }
-}
-
-
-export async function exportTodayGroupMessagesPdf(
-    c: LagrangeContext<GroupMessage | PrivateMessage>,
-    sourceGroupId: number,
-    targetGroupId: number
-) {
-    const json = await c.realmService?.getGroupMessagesByDate(c, sourceGroupId);
-
-    if (!json) {
-        c.sendMessage('无法从 realm 数据库中获取信息，请求技术支持');
-        return;
-    }
-
-    const response = await axios.post(`${FAAS_BASE_URL}/qq-group-summary-to-pdf`, { json });
-
-    if (response.data.code === 200) {
-        const { pdfPath, imagePath } = response.data.msg;
-
-        await c.wait(1500);
-        await c.uploadGroupFile(targetGroupId, pdfPath, path.basename(pdfPath));
-        
-        await c.wait(1500);
-        await c.sendGroupMsg(targetGroupId, [{
-            type: 'image',
-            data: {
-                file: 'file://' + imagePath
-            }
-        }]);
     }
 }

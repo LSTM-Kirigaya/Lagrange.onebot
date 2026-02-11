@@ -422,6 +422,28 @@ export function getStatus() {
 }
 
 /**
+ * @description 获取好友历史消息记录
+ * @param params user_id 对方 QQ 号；message_seq 起始消息序号（可选）；message_id 起始消息ID lgl（可选）；count 消息数量
+ */
+export function getFriendMsgHistory(params: { user_id: number; message_seq?: number; message_id?: number; count: number }) {
+    return {
+        action: 'get_friend_msg_history',
+        params: { user_id: params.user_id, message_seq: params.message_seq, message_id: params.message_id, count: params.count },
+    };
+}
+
+/**
+ * @description 获取群组历史消息记录
+ * @param params group_id 群号；message_seq 起始消息序号（可选）；message_id 起始消息ID lgl（可选）；count 消息数量
+ */
+export function getGroupMsgHistory(params: { group_id: number; message_seq?: number; message_id?: number; count: number }) {
+    return {
+        action: 'get_group_msg_history',
+        params: { group_id: params.group_id, message_seq: params.message_seq, message_id: params.message_id, count: params.count },
+    };
+}
+
+/**
  * @description 获取版本信息
  */
 export function getVersionInfo() {
