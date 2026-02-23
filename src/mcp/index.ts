@@ -4,14 +4,10 @@ import { z } from "zod";
 import { LagrangeContext } from "../core/context";
 import type * as Lagrange from "../core/type";
 import type { Memory } from "./memory";
-import { atMessagePrompt, atQueryPrompt, executeTaskGuidePrompt } from "./prompt";
+import { atMessagePrompt, atQueryPrompt, EXECUTE_TASK_GUIDE } from "./prompt";
 import { McpLanchOption } from "../core/dto";
 import { McpTransport } from "./transport";
 import { runTaskCode, type TaskSandbox } from "./executor";
-
-/** 工具简短描述，完整说明见 prompt execute-task-guide */
-const EXECUTE_TASK_DESCRIPTION =
-    "执行 TS/JS 代码完成任务，可访问 context、memory、util。完整说明见 prompt execute-task-guide。";
 
 export class LagrangeMcpManager {
     private mem: Memory | null = null;
@@ -56,7 +52,7 @@ export class LagrangeMcpManager {
         this.server.registerTool(
             "execute_task",
             {
-                description: EXECUTE_TASK_DESCRIPTION,
+                description: EXECUTE_TASK_GUIDE,
                 inputSchema: {
                     code: z
                         .string()
@@ -85,37 +81,21 @@ export class LagrangeMcpManager {
     public registerPrompts() {
         const context = this.context;
 
-        this.server.registerPrompt(
-            "execute-task-guide",
-            {
-                description: "execute_task 工具的完整使用说明（context、memory、util 等）",
-                argsSchema: {},
-            },
-            async () => ({
-                messages: [
-                    {
-                        role: "user",
-                        content: {
-                            type: "text",
-                            text: executeTaskGuidePrompt(),
-                        },
-                    },
-                ],
-            })
-        );
-
         this.server.registerPrompt("at-message", {
             description: "当用户 @ 你时的 system prompt",
             argsSchema: {
                 groupId: z.string().describe("群号"),
+                userName: z.string().describe("提问用户的昵称"),
+                atUserId: z.string().optional().describe("@机器人 的用户的 QQ 号"),
+                atUserContent: z.string().optional().describe("@机器人 的用户发言内容"),
             },
-        }, async ({ groupId }) => ({
+        }, async ({ groupId, userName, atUserId, atUserContent }) => ({
             messages: [
                 {
                     role: "user",
                     content: {
                         type: "text",
-                        text: await atMessagePrompt(context, parseInt(groupId)),
+                        text: await atMessagePrompt(context, parseInt(groupId), userName, atUserId, atUserContent),
                     },
                 },
             ],

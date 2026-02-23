@@ -5,6 +5,7 @@
  */
 
 import vm from "vm";
+import { format } from "util";
 import * as ts from "typescript";
 import type { LagrangeContext } from "../core/context";
 import type { Memory } from "./memory";
@@ -42,12 +43,39 @@ function transpileToJS(code: string): string {
 
 /**
  * 构建 vm 沙箱：仅暴露必要内置对象（context/memory/util 通过函数参数传入，不放入全局）
+ * 使用自定义 console 捕获 log/info/warn/debug/error 输出，供 AI 查看
  */
-function createSandbox(): vm.Context {
+function createSandbox(stdoutLines: string[]): vm.Context {
+    const pushOut = (...args: unknown[]) => stdoutLines.push(format(...args));
+    const noop = () => {};
+    const customConsole = {
+        log: pushOut,
+        info: pushOut,
+        warn: pushOut,
+        debug: pushOut,
+        error: pushOut,
+        trace: noop,
+        dir: (...args: unknown[]) => stdoutLines.push(format("%O", args[0])),
+        table: noop,
+        count: noop,
+        countReset: noop,
+        group: noop,
+        groupCollapsed: noop,
+        groupEnd: noop,
+        time: noop,
+        timeEnd: noop,
+        timeLog: noop,
+        assert: (v?: unknown, ...rest: unknown[]) => { if (!v) pushOut("Assertion failed:", ...rest); },
+        clear: noop,
+        profile: noop,
+        profileEnd: noop,
+        timeStamp: noop,
+        context: noop,
+    };
     return vm.createContext({
         // 常用内置，便于代码中做 JSON/数组等操作
         JSON,
-        console,
+        console: customConsole,
         Promise,
         Array,
         Object,
@@ -119,7 +147,8 @@ export async function runTaskCode(
   "use strict";
   ${js}
 })`;
-    const ctx = createSandbox();
+    const stdoutLines: string[] = [];
+    const ctx = createSandbox(stdoutLines);
     let fn: (context: any, memory: any, util: any) => Promise<any>;
     try {
         fn = vm.runInNewContext(wrapped, ctx, {
@@ -143,15 +172,19 @@ export async function runTaskCode(
     );
     try {
         const result = await Promise.race([run(), timeoutPromise]);
+        const stdout = stdoutLines.join("\n");
         return JSON.stringify({
             ok: true,
             result: result === undefined ? null : result,
+            stdout,
         });
     } catch (e) {
+        const stdout = stdoutLines.join("\n");
         return JSON.stringify({
             ok: false,
             error: "执行错误",
             detail: (e as Error).message,
+            stdout,
         });
     }
 }
