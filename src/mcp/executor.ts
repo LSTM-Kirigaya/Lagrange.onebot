@@ -165,6 +165,15 @@ export async function runTaskCode(
 
     const utilObj = {
         websearch: sandbox.websearch ? ExtraTool.websearch : undefined,
+        /**
+         * 搜索群聊历史消息
+         * @param groupId 群组 ID
+         * @param keywords 搜索关键词（支持多个，空格分隔）
+         * @param limit 返回结果数量，默认 20
+         * @returns JSON 字符串格式的搜索结果
+         */
+        searchHistoryMessages: (groupId: number, keywords: string, limit?: number) =>
+            ExtraTool.searchHistoryMessages(sandbox.context, groupId, keywords, limit),
     };
     const run = () => fn(sandbox.context, sandbox.memory ?? null, utilObj);
     const timeoutPromise = new Promise<never>((_, reject) =>

@@ -1,4 +1,7 @@
 import { chromium } from "playwright";
+import { searchGroupMsgHistory, type HistoryMessageResult } from "../util/message-search";
+import type { LagrangeContext } from "../core/context";
+import type * as Lagrange from "../core/type";
 
 /** 单条搜索结果 */
 export interface WebSearchResult {
@@ -61,5 +64,57 @@ export async function websearch(query: string): Promise<WebSearchResult[]> {
         return results;
     } finally {
         await browser.close();
+    }
+}
+
+/**
+ * 搜索群聊历史消息的工具函数
+ * 
+ * @param context Lagrange 上下文
+ * @param groupId 群组 ID
+ * @param keywords 搜索关键词（支持多个，空格分隔）
+ * @param limit 返回结果数量，默认 20
+ * @returns JSON 字符串格式的搜索结果
+ */
+export async function searchHistoryMessages(
+    context: LagrangeContext<Lagrange.Message>,
+    groupId: number,
+    keywords: string,
+    limit: number = 20
+): Promise<string> {
+    try {
+        const results = await searchGroupMsgHistory(context, {
+            keywords,
+            groupId,
+            maxMessages: 500,
+            limit,
+        });
+
+        // 格式化结果为可读的文本
+        if (results.length === 0) {
+            return JSON.stringify({
+                success: true,
+                message: `未找到包含关键词"${keywords}"的历史消息`,
+                results: [],
+            });
+        }
+
+        const formattedResults = results.map(r => ({
+            sender: `${r.senderName || r.senderId}(${r.senderId})`,
+            time: new Date(r.time * 1000).toLocaleString('zh-CN'),
+            content: r.content,
+        }));
+
+        return JSON.stringify({
+            success: true,
+            message: `找到 ${results.length} 条包含关键词"${keywords}"的历史消息`,
+            results: formattedResults,
+        });
+    } catch (error) {
+        console.error('[searchHistoryMessages] 搜索失败:', error);
+        return JSON.stringify({
+            success: false,
+            error: error instanceof Error ? error.message : '搜索失败',
+        });
     }
 }

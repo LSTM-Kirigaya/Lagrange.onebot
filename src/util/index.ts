@@ -13,13 +13,13 @@ export const logger = new Logger();
 export function command(cmd: string) {
     return new Promise<string>((resolve, reject) => {
         exec(cmd, (error, stdout, stderr) => {
-            if (error) {  
-                logger.error(`exec error: ${error}`);  
-                return reject(error);  
-            }  
-            if (stderr) {  
-                logger.error(`stderr: ${stderr}`);  
-            }  
+            if (error) {
+                logger.error(`exec error: ${error}`);
+                return reject(error);
+            }
+            if (stderr) {
+                logger.error(`stderr: ${stderr}`);
+            }
             resolve(stdout);
         });
     });
@@ -138,13 +138,16 @@ export async function getUserAvatarPath(user_id: number, no_cache: boolean = fal
     // 获取头像
     const res = await axios.get(`https://q1.qlogo.cn/g?b=qq&nk=${user_id}&s=640`, {
         responseType: 'arraybuffer',
-        validateStatus: () => true, // 防止非200状态抛错
+        validateStatus: () => true, // 防止非 200 状态抛错
     });
 
     if (res.status === 200) {
         fs.writeFileSync(avatarPath, res.data);
         return avatarPath;
     } else {
-        throw new Error(`头像下载失败，状态码: ${res.status}`);
+        throw new Error(`头像下载失败，状态码：${res.status}`);
     }
 }
+
+// 导出历史消息搜索功能
+export * from './message-search';
