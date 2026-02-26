@@ -32,6 +32,7 @@ export class LagrangeMcpManager {
         if (this.mem) return;
         console.log("[Memory] 模型初始化开始：下载/加载/预热…");
         const { Memory: MemoryClass } = await import("./memory");
+        
         this.mem = await MemoryClass.create({
             DB_DIR: ".data/memory",
             cacheDir: ".cache/transformers",
