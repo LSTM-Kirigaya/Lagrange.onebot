@@ -165,6 +165,7 @@ export async function runTaskCode(
 
     const utilObj = {
         websearch: sandbox.websearch ? ExtraTool.websearch : undefined,
+        getWebPageMarkdown: ExtraTool.getWebPageMarkdown,
         /**
          * 搜索群聊历史消息
          * @param groupId 群组 ID

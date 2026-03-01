@@ -784,7 +784,7 @@ export class LagrangeServer {
             case "forward-websocket":
                 this.ws = new WebSocket(`ws://${config.host}:${config.port}`, {
                     headers: {
-                        Authorization: `Bearer ${config.access_token}`
+                        Authorization: `Bearer ${config.accessToken}`
                     }
                 });
                 await this.clientConnect(this.ws);
@@ -881,7 +881,7 @@ export class LagrangeServer {
 
     /**
      * @description 启动 QQ 服务进程
-     * 连接参数（type/host/port/access_token/path）与配置文件同时传入时，以传入参数为准
+     * 连接参数（type/host/port/accessToken/path）与配置文件同时传入时，以传入参数为准
      */
     public async launch(config?: ILaunchConfig) {
         const {
@@ -892,7 +892,7 @@ export class LagrangeServer {
             type: configType,
             host: configHost,
             port: configPort,
-            access_token: configAccessToken,
+            accessToken: configAccessToken,
             path: configPathRoute,
         } = config || {};
 
@@ -913,7 +913,7 @@ export class LagrangeServer {
                 port: impl.Port
             } as LaunchOption;
             if (impl.AccessToken != null) {
-                launchOption.access_token = impl.AccessToken;
+                launchOption.accessToken = impl.AccessToken;
             }
             if (launchOption.type === 'backward-websocket' && impl.Path != null) {
                 (launchOption as import('./dto').BackwardWebsocketLaunchOption).path = impl.Path;
@@ -922,7 +922,7 @@ export class LagrangeServer {
             if (configType != null) launchOption.type = configType;
             if (configHost != null) launchOption.host = configHost;
             if (configPort != null) launchOption.port = configPort;
-            if (configAccessToken !== undefined) launchOption.access_token = configAccessToken;
+            if (configAccessToken !== undefined) launchOption.accessToken = configAccessToken;
             if (launchOption.type === 'backward-websocket' && configPathRoute !== undefined) {
                 (launchOption as import('./dto').BackwardWebsocketLaunchOption).path = configPathRoute;
             }
@@ -932,7 +932,7 @@ export class LagrangeServer {
                 host: configHost!,
                 port: configPort!,
             } as LaunchOption;
-            if (configAccessToken !== undefined) launchOption.access_token = configAccessToken;
+            if (configAccessToken !== undefined) launchOption.accessToken = configAccessToken;
             if (configType === 'backward-websocket' && configPathRoute !== undefined) {
                 (launchOption as import('./dto').BackwardWebsocketLaunchOption).path = configPathRoute;
             } else if (configType === 'backward-websocket') {

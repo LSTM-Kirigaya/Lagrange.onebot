@@ -52,6 +52,29 @@ description: 历史消息搜索功能。支持关键词搜索群聊和好友的�
 
 **返回**: `HistoryMessageResult[]` 数组
 
+
+## 消息解析规范
+
+获取历史消息时，必须对 `message` 字段进行类型检查：
+
+```typescript
+const res = await context.getGroupMsgHistory({ group_id: groupId, count: 20 });
+const messages = res?.data?.messages ?? [];
+
+// 正确解析消息段数组
+for (const msg of messages) {
+    let content = '';
+    if (typeof msg.message === 'string') {
+        content = msg.message;
+    } else if (Array.isArray(msg.message)) {
+        content = msg.message
+            .filter(s => s.type === 'text')
+            .map(s => s.data?.text || '')
+            .join('');
+    }
+}
+```
+
 ## 代码案例
 
 ### 基础搜索

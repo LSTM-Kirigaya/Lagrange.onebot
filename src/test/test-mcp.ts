@@ -28,7 +28,7 @@ async function main() {
 
     const host = process.env.LAGRANGE_WS_HOST;
     const port = process.env.LAGRANGE_WS_PORT;
-    const access_token = process.env.LAGRANGE_WS_ACCESS_TOKEN;
+    const accessToken = process.env.LAGRANGE_WS_ACCESS_TOKEN;
     const type = (process.env.LAGRANGE_WS_TYPE || 'forward-websocket') as 'forward-websocket' | 'backward-websocket';
     const pathRoute = process.env.LAGRANGE_WS_PATH;
 
@@ -47,7 +47,7 @@ async function main() {
         type,
         host,
         port: Number(port),
-        ...(access_token ? { access_token } : {}),
+        ...(accessToken ? { accessToken } : {}),
         ...(type === 'backward-websocket' && pathRoute ? { path: pathRoute } : {}),
 
         mcpOption: {

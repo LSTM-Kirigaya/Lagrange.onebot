@@ -1,6 +1,6 @@
 {
     "name": "lagrange.onebot",
-    "version": "1.0.12",
+    "version": "2.0.0",
     "author": {
         "name": "锦恢",
         "email": "zhelonghuang@qq.com"
@@ -17,7 +17,7 @@
         "url": "git+https://github.com/LSTM-Kirigaya/Lagrange.onebot"
     },
     "scripts": {
-        "build": "tsc",
+        "build": "tsc && node scripts/copy-skills.js",
         "start": "serve dist",
         "serve": "tsc -w & serve dist",
         "startmcp": "ts-node src/test/test-mcp.ts",
@@ -40,19 +40,21 @@
         "msgpackr": "^1.11.5",
         "node-schedule": "^2.1.1",
         "ora": "^9.0.0",
+        "playwright": "^1.58.2",
         "pm2": "^5.4.0",
         "sharp": "^0.34.5",
+        "turndown": "^7.2.2",
         "undici": "^7.21.0",
         "uuid": "^13.0.0",
         "ws": "^8.17.0",
-        "yaml": "^2.4.2",
-        "playwright": "^1.58.2"
+        "yaml": "^2.4.2"
     },
     "devDependencies": {
         "@types/better-sqlite3": "^7.6.13",
         "@types/express": "^5.0.3",
         "@types/figlet": "^1.7.0",
         "@types/node-schedule": "^2.1.7",
+        "@types/turndown": "^5.0.6",
         "@types/ws": "^8.5.10",
         "serve": "^14.2.3",
         "ts-node": "^10.9.2",

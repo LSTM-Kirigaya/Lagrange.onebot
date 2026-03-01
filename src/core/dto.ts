@@ -1,5 +1,5 @@
 export interface CommonLaunchOption {
-    access_token?: string
+    accessToken?: string
 }
 
 export interface ForwardWebsocketLaunchOption extends CommonLaunchOption {
@@ -94,7 +94,7 @@ export interface ILaunchConfig {
     /**
      * @description 访问令牌（AccessToken）。与配置文件同时存在时，以此为准
      */
-    access_token?: string
+    accessToken?: string
 
     /**
      * @description 反向 WebSocket 路由路径，仅 type 为 backward-websocket 时有效。与配置文件同时存在时，以此为准

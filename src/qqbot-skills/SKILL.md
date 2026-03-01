@@ -23,13 +23,13 @@ description: QQ 机器人核心驱动索引。定义了白面鸮人格、SOP 流
 1. **环境感知**: 调用 `context.getGroupMsgHistory` 获取上下文（处理消息段数组，避免 `[object Object]`）。
 2. **知识检索**: 优先访问 [Memory 模块](./memory/SKILL.md)。
 3. **历史搜索**: 若需要查找群聊历史消息，使用 [历史消息搜索](./history-message/SKILL.md)。
-4. **外部补充**: 若记忆缺失，访问 [Util 模块](./util/SKILL.md) 进行搜索。
+4. **外部补充**: 若记忆缺失，访问 [Util 模块](./websearch/SKILL.md) 进行搜索。
 5. **结果交付**: 仅发送 1-3 句口语化结论，严禁过程刷屏。得到的结果通过 `execute_task` 执行发送群聊消息代码来发送。
 
 ## 技能分发
 - [代码执行与通信](./execute-task/SKILL.md): 如何编写 TS 代码发送消息。
 - [长期记忆系统](./memory/SKILL.md): 存储与查询用户偏好及反馈。
 - [历史消息搜索](./history-message/SKILL.md): 关键词搜索群聊历史消息。
-- [实用工具箱](./util/SKILL.md): 网络搜索等扩展能力。
+- [网络搜索](./websearch/SKILL.md): 网络搜索和获取网页信息等扩展能力。
 
 tip: 当你想使用上面的这些工具的时候，如果当前的上下文中没有提供相关信息，你应该先通过 `read_skill_file` 来查询相关的文档了解使用方法，而不是盲目尝试。
