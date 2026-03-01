@@ -99,7 +99,7 @@ export class LagrangeContext<T extends Lagrange.Message> {
                     chalk.redBright('会话已经结束，send 已经停用，检查你的代码！'),
                     chalk.gray('查看是否在当前 action 调用前结束了行动；是否将发送行为包裹在了 setTimeout 中。')
                 );
-                
+
                 if (SHOW_LOGGER) {
                     console.log(
                         chalk.bgGray.white.bold('LAGRANGE BACKEND'),
@@ -772,111 +772,89 @@ export class LagrangeServer {
     public async run(config: LaunchOption): Promise<void> {
         showBanner();
 
+        const grad = getGrad();
         const spinner = ora({
-            text: 'Lagrange.Onebot Server is starting...',
-            color: 'yellow',
+            text: chalk.cyan('Lagrange.Onebot 正在初始化核心服务...'),
+            color: 'blue',
             spinner: 'dots',
         }).start();
 
         this.config = config;
 
-        switch (config.type) {
-            case "forward-websocket":
-                this.ws = new WebSocket(`ws://${config.host}:${config.port}`, {
-                    headers: {
-                        Authorization: `Bearer ${config.accessToken}`
-                    }
-                });
-                await this.clientConnect(this.ws);
+        try {
+            const addr = `${config.host}:${config.port}`;
+            let connectionInfo = "";
 
-                spinner.succeed(' Lagrange.Onebot Server started');
+            switch (config.type) {
+                case "forward-websocket":
+                    this.ws = new WebSocket(`ws://${addr}`, {
+                        headers: { Authorization: `Bearer ${config.accessToken}` }
+                    });
+                    await this.clientConnect(this.ws);
+                    connectionInfo = `Forward WebSocket ➜ ${chalk.gray(`ws://${addr}`)}`;
+                    break;
 
-                console.log(
-                    "🔗 Forward Websocket Server" +
-                    " running at " +
-                    chalk.gray(`ws://${config.host}:${config.port}`)
-                );
+                case 'backward-websocket':
+                    const wsServer = new WebSocket.Server(config);
+                    const ws = await this.serverConnect(wsServer);
+                    this.wsServer = wsServer;
+                    this.ws = ws;
+                    connectionInfo = `Reverse WebSocket ➜ ${chalk.gray(`ws://${addr}`)}`;
+                    break;
 
-                break;
-            case 'backward-websocket':
-                const wsServer = new WebSocket.Server(config);
-                const ws = await this.serverConnect(wsServer);
+                default:
+                    spinner.fail(chalk.red("未知的连接类型，启动失败。"));
+                    throw new Error("Unknown connection type!");
+            }
 
-                spinner.succeed(' Lagrange.Onebot Server started');
+            // 基础连接成功
+            spinner.succeed(chalk.green(' ONEBOT 协议握手成功'));
+            console.log(`  ${chalk.blue('🔗')} ${chalk.bold('Network ')} ${connectionInfo}`);
 
-                console.log(
-                    "🔗 Listen Lagrange.Core Server" +
-                    " at " +
-                    chalk.gray(`ws://${config.host}:${config.port}`)
-                );
+            // 获取用户信息
+            const context = new LagrangeContext({ post_type: 'meta_event' });
+            await context.getFriendList();
+            const loginInfo = await context.getLoginInfo() as any;
 
-                this.wsServer = wsServer;
-                this.ws = ws;
-                break;
-            default:
-                throw new Error("Unknown connection type! ");
-        }
+            this.qq = loginInfo.data.user_id;
+            this.nickname = loginInfo.data.nickname;
 
-        const context = new LagrangeContext({ post_type: 'meta_event' });
+            // 机器人身份信息
+            console.log(`  ${chalk.magenta('👤')} ${chalk.bold('Account ')} ${grad(this.nickname)} ${chalk.gray(`(${this.qq})`)}`);
+            console.log(grad("━".repeat(64)) + "\n");
 
-        await context.getFriendList();
-        const loginInfo = await context.getLoginInfo() as Lagrange.CommonResponse<Lagrange.GetLoginInfoResponse>;
+            // 后续逻辑：注册、周期钩子等
+            pipe.registerServer(this);
+            this.ws.on('message', onMessage);
+            this.ws.on('close', onClose);
 
-        this.qq = loginInfo.data.user_id;
-        this.nickname = loginInfo.data.nickname;
+            const cycleCbMap = this.cycleCbMap;
+            cycleCbMap.get('mounted')?.forEach(cb => cb.call(this, new LagrangeContext({ post_type: 'meta_event' })));
 
-        const grad = getGrad();
-
-        console.log(
-            "🤖 Robot " +
-            grad(String(this.qq)) +
-            " login in as " +
-            grad(this.nickname)
-        );
-
-        pipe.registerServer(this);
-
-        this.ws.on('message', onMessage);
-        this.ws.on('close', onClose);
-
-        const cycleCbMap = this.cycleCbMap;
-
-        // mounted 周期
-        cycleCbMap.get('mounted')?.forEach(cb => cb.call(this, new LagrangeContext({ post_type: 'meta_event' })));
-
-        // 执行注册的定时器
-        this.timeScheduleCbMap.forEach(({ cb, spec }) => {
-            scheduleJob(spec, () => {
-                cb.call(this, new LagrangeContext({ post_type: 'meta_event' }));
+            // 定时任务等逻辑保持不变...
+            this.timeScheduleCbMap.forEach(({ cb, spec }) => {
+                scheduleJob(spec, () => cb.call(this, new LagrangeContext({ post_type: 'meta_event' })));
             });
-        });
 
-        // 执行 mapper 中注册的定时器
-        lagrangeMapper.getCreateTimeSchedule.forEach(({ invoker, config }) => {
-            if (config) {
-                scheduleJob(config.spec, () => {
-                    invoker.call(this, new LagrangeContext({ post_type: 'meta_event' }));
-                });
-            }
-        });
+            lagrangeMapper.getCreateTimeSchedule.forEach(({ invoker, config }) => {
+                if (config) {
+                    scheduleJob(config.spec, () => invoker.call(this, new LagrangeContext({ post_type: 'meta_event' })));
+                }
+            });
 
-        // 展示 mapper 中激活的控制器
-        // await lagrangeMapper.showRegisterControllers(context);
+            process.on('SIGINT', async () => {
+                const works = cycleCbMap.get('unmounted')?.map(cb => cb.call(this, new LagrangeContext({ post_type: 'meta_event' })));
+                if (works) await Promise.all(works);
+                this.ws?.close();
+                this.wsServer?.close();
+                console.log(chalk.yellow('\n👋 服务已安全关闭，再见！'));
+                process.exit(0);
+            });
 
-        process.on('SIGINT', async () => {
-            // unmounted 周期
-            const works = cycleCbMap.get('unmounted')?.map(cb => cb.call(this, new LagrangeContext({ post_type: 'meta_event' })));
-
-            if (works) {
-                await Promise.all(works);
-            }
-
-            this.ws?.close();
-            this.wsServer?.close();
-
-            // 退出
-            process.exit(0);
-        });
+        } catch (err) {
+            spinner.fail(chalk.red(`启动过程中发生错误: ${err.message}`));
+            process.exit(1);
+        }
     }
 
     /**

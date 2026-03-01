@@ -8,6 +8,8 @@ import { atMessagePrompt, atQueryPrompt, EXECUTE_TASK_GUIDE } from "./prompt";
 import { McpLanchOption } from "../core/dto";
 import { McpTransport } from "./transport";
 import { runTaskCode, type TaskSandbox } from "./executor";
+import chalk from "chalk";
+import ora from "ora";
 
 export class LagrangeMcpManager {
     private mem: Memory | null = null;
@@ -16,12 +18,12 @@ export class LagrangeMcpManager {
     constructor(
         private readonly server: McpServer,
         private readonly context: LagrangeContext<Lagrange.Message>
-    ) {}
+    ) { }
 
     private async getMem(): Promise<Memory | null> {
         if (!this.mem) {
-            console.warn(
-                "[Memory] 警告：Memory 实例应当在启动 MCPServer 之前初始化，但实际上尚未初始化，正在自动初始化…"
+            console.log(
+                `  ${chalk.yellow('⚠️')}  ${chalk.bold('Memory ')} ${chalk.yellow('检测到实例未就绪，正在触发自动初始化...')}`
             );
             await this.initMemory(this._mcpOption);
         }
@@ -30,16 +32,34 @@ export class LagrangeMcpManager {
 
     public async initMemory(option: McpLanchOption = {}) {
         if (this.mem) return;
-        console.log("[Memory] 模型初始化开始：下载/加载/预热…");
-        const { Memory: MemoryClass } = await import("./memory");
-        
-        this.mem = await MemoryClass.create({
-            DB_DIR: ".data/memory",
-            cacheDir: ".cache/transformers",
-            warmupText: "你好",
-            ...(option.proxy != null ? { proxy: option.proxy } : {}),
-        });
-        console.log("[Memory] 模型初始化完成。");
+
+        const spinner = ora({
+            text: chalk.cyan('Memory 正在加载模型组件 (下载/加载/预热)...'),
+            color: 'magenta',
+            spinner: 'bouncingBall',
+        }).start();
+
+        try {
+            const { Memory: MemoryClass } = await import("./memory");
+
+            this.mem = await MemoryClass.create({
+                DB_DIR: ".data/memory",
+                cacheDir: ".cache/transformers",
+                warmupText: "你好",
+                ...(option.proxy != null ? { proxy: option.proxy } : {}),
+            });
+
+            spinner.succeed(chalk.green(' 记忆系统成功启动'));
+
+            // 打印一行精致的配置摘要
+            console.log(
+                `  ${chalk.magenta('🧠')} ${chalk.bold('Storage')}  ${chalk.gray('.data/memory')}`
+            );
+        } catch (err) {
+            spinner.fail(chalk.red('Memory 初始化失败'));
+            console.error(`  ${chalk.red('✘')} ${chalk.gray(err.message)}`);
+            throw err;
+        }
     }
 
     /**

@@ -71,37 +71,35 @@ export class McpTransport {
         })
         this.app.delete("/mcp", handleSessionRequest);
     }
-
     public start() {
         this.expressServer = this.app.listen(this.port, this.hostname, () => {
+            const grad = getGrad(); // 复用渐变
+            const localIP = getLocalIP();
             const url = `http://${this.hostname}:${this.port}/mcp`;
 
-            // 获取当前的局域网 IP 地址
-            const localIP = getLocalIP();
+            // 1. 打印标题：使用渐变色装饰器
+            console.log(`\n  ${grad('🚀')} ${chalk.bold.cyan('MCP HTTP Server')} ${chalk.green('ready')}\n`);
 
+            // 2. 打印访问入口
+            console.log(`  ${chalk.bold('➜')}  ${chalk.bold('Local:  ')}   ${chalk.cyan(url)}`);
 
-            console.log(
-                "🚀 MCP HTTP Server" +
-                " running at"
-            );
-
-            console.log(
-                "  🌐 Local   ➜  " +
-                chalk.gray(url)
-            );
-
-            // 如果获取到了局域网IP，则也显示局域网访问地址
+            // 3. 处理局域网 IP 展示逻辑
             if (localIP) {
+                const isListeningAll = this.hostname === "0.0.0.0" || this.hostname === "::";
                 const networkUrl = `http://${localIP}:${this.port}/mcp`;
+
                 console.log(
-                    "  🌐 Network ➜  " +
-                    chalk.gray(this.hostname === "0.0.0.0" ? networkUrl : 'Not available')
+                    `  ${chalk.bold('➜')}  ${chalk.bold('Network: ')} ${isListeningAll
+                        ? chalk.cyan(networkUrl)
+                        : chalk.gray('use --host to expose')
+                    }`
                 );
             }
 
+            // 4. 打印一个底部收尾，让布局更稳重
+            console.log(`\n  ${chalk.gray('press ')}${chalk.bold.white('Ctrl+C')}${chalk.gray(' to stop')}\n`);
         });
     }
-
     public close() {
         this.expressServer?.close();
         this.server.close();
