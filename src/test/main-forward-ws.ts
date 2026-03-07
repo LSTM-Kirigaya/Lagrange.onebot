@@ -79,7 +79,7 @@ async function main() {
         console.log('[测试] 已发送启动图片:', imageUrl);
 
         // 获取好友 JIN_HUI 的历史消息
-        const friendHistory = await c.getFriendMsgHistory({ user_id: qq_users.JIN_HUI, count: 10 });
+        const friendHistory = await c.getFriendMsgHistory(qq_users.JIN_HUI, undefined, 10);
         if (friendHistory instanceof Error || !friendHistory.data?.messages?.length) {
             console.log('[历史消息] 好友 JIN_HUI: 无数据或请求失败', friendHistory instanceof Error ? friendHistory.message : '');
         } else {
@@ -91,7 +91,7 @@ async function main() {
         }
 
         // 获取群聊 OPENMCP_DEV 的历史消息
-        const groupHistory = await c.getGroupMsgHistory({ group_id: qq_groups.OPENMCP_DEV, count: 10 });
+        const groupHistory = await c.getGroupMsgHistory(qq_groups.OPENMCP_DEV, undefined, 10);
         if (groupHistory instanceof Error || !groupHistory.data?.messages?.length) {
             console.log('[历史消息] 群 OPENMCP_DEV: 无数据或请求失败', groupHistory instanceof Error ? groupHistory.message : '');
         } else {

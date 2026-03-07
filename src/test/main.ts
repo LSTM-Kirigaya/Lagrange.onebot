@@ -28,11 +28,7 @@ async function getTodaysGroupMessages(
     let stopLoop = false;
 
     while (!stopLoop) {
-        const res = await context.getGroupMsgHistory({
-            group_id: groupId,
-            message_id: messageId,
-            count: chunkSize,
-        });
+        const res = await context.getGroupMsgHistory(groupId, messageId, chunkSize);
 
         if (res instanceof Error || !res.data?.messages?.length) {
             break;
@@ -153,8 +149,7 @@ const server = LagrangeFactory.create([
 server.onMounted(async c => {
     await c.sendPrivateMsg(qq_users.JIN_HUI, 'Successfully Login, TIP online');
 
-    // 原有代码保留作参考
-    const res = await c.getGroupMsgHistory({ group_id: qq_groups.OPENMCP_DEV, count: 20 });
+    const res = await c.getGroupMsgHistory(qq_groups.OPENMCP_DEV, undefined, 20);
     for (const msg of res?.data?.messages ?? []) {
         const actualTime = new Date(msg.time * 1000);
     }

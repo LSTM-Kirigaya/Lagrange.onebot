@@ -129,13 +129,12 @@ export async function searchGroupMsgHistory(
             count: currentBatchSize,
         };
         
-        // 如果有上次的 message_id，继续往前获取
-        if (lastMessageId !== undefined) {
-            params.message_id = lastMessageId;
-        }
-
         try {
-            const response = await context.getGroupMsgHistory(params);
+            const response = await context.getGroupMsgHistory(
+                params.group_id,
+                params.message_id,
+                params.count
+            );
             const messages = response?.data?.messages ?? [];
             
             if (messages.length === 0) {
@@ -225,12 +224,12 @@ export async function searchFriendMsgHistory(
             count: currentBatchSize,
         };
         
-        if (lastMessageId !== undefined) {
-            params.message_id = lastMessageId;
-        }
-
         try {
-            const response = await context.getFriendMsgHistory(params);
+            const response = await context.getFriendMsgHistory(
+                params.user_id,
+                params.message_id,
+                params.count
+            );
             const messages = response?.data?.messages ?? [];
             
             if (messages.length === 0) {

@@ -239,23 +239,39 @@ export class LagrangeContext<T extends Lagrange.Message> {
 
     /**
      * @description 获取群消息历史记录
-     * @param params group_id 群号；message_seq 起始消息序号（可选）；message_id 起始消息ID lgl（可选）；count 消息数量
+     * @param group_id 群号
+     * @param message_seq 消息序号
+     * @param count 获取数量
+     * @param reverse_order 是否倒序
      */
-    public getGroupMsgHistory(params: GetGroupMsgHistoryParams): Promise<Lagrange.CommonResponse<Lagrange.GetGroupMsgHistoryResponse>> {
+    public getGroupMsgHistory(
+        group_id: number,
+        message_seq?: number,
+        count: number = 20,
+        reverse_order: boolean = false
+    ) {
         return this.send<Lagrange.GetGroupMsgHistoryResponse>({
             action: 'get_group_msg_history',
-            params: { group_id: params.group_id, message_seq: params.message_seq, message_id: params.message_id, count: params.count }
+            params: { group_id, message_seq, count, reverse_order }
         });
     }
 
     /**
      * @description 获取好友消息历史记录
-     * @param params user_id 对方 QQ 号；message_seq 起始消息序号（可选）；message_id 起始消息ID lgl（可选）；count 消息数量
+     * @param user_id 用户QQ号
+     * @param message_seq 消息序号
+     * @param count 获取数量
+     * @param reverse_order 是否倒序
      */
-    public getFriendMsgHistory(params: GetFriendMsgHistoryParams): Promise<Lagrange.CommonResponse<Lagrange.GetFriendMsgHistoryResponse>> {
+    public getFriendMsgHistory(
+        user_id: number,
+        message_seq?: number,
+        count: number = 20,
+        reverse_order: boolean = false
+    ) {
         return this.send<Lagrange.GetFriendMsgHistoryResponse>({
             action: 'get_friend_msg_history',
-            params: { user_id: params.user_id, message_seq: params.message_seq, message_id: params.message_id, count: params.count }
+            params: { user_id, message_seq, count, reverse_order }
         });
     }
 
