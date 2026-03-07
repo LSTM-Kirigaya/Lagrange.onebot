@@ -26,14 +26,14 @@ async function loadEnv() {
 async function main() {
     await loadEnv();
 
-    const host = process.env.LAGRANGE_WS_HOST;
-    const port = process.env.LAGRANGE_WS_PORT;
-    const accessToken = process.env.LAGRANGE_WS_ACCESS_TOKEN;
-    const type = (process.env.LAGRANGE_WS_TYPE || 'forward-websocket') as 'forward-websocket' | 'backward-websocket';
-    const pathRoute = process.env.LAGRANGE_WS_PATH;
+    const host = process.env.ONEBOT_WS_HOST;
+    const port = process.env.ONEBOT_WS_PORT;
+    const accessToken = process.env.ONEBOT_WS_ACCESS_TOKEN;
+    const type = (process.env.ONEBOT_WS_TYPE || 'forward-websocket') as 'forward-websocket' | 'backward-websocket';
+    const pathRoute = process.env.ONEBOT_WS_PATH;
 
     if (!host || !port) {
-        console.error('请配置 LAGRANGE_WS_HOST 和 LAGRANGE_WS_PORT（.env 或环境变量），并确保已安装 dotenv: npm install dotenv');
+        console.error('请配置 ONEBOT_WS_HOST 和 ONEBOT_WS_PORT（.env 或环境变量），并确保已安装 dotenv: npm install dotenv');
         process.exit(1);
     }
 

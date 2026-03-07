@@ -863,7 +863,7 @@ export class LagrangeServer {
      */
     public async launch(config?: ILaunchConfig) {
         const {
-            configPath = path.join(process.env.LAGRANGE_CORE_HOME || '', 'appsettings.json'),
+            configPath = path.join(process.env.ONEBOT_CORE_HOME || '', 'appsettings.json'),
             db = 'lagrange-0-db',
             mcpOption,
             logger = true,

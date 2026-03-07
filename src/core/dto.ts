@@ -53,7 +53,7 @@ export type LaunchConnectionType = LaunchOption['type'];
 export interface ILaunchConfig {
 
     /**
-     * @description appsettings.json 的路径，默认通过环境变量 `$LAGRANGE_CORE_HOME` 获取
+     * @description appsettings.json 的路径，默认通过环境变量 `$ONEBOT_CORE_HOME` 获取
      * 若未提供或文件不存在，且提供了下方连接参数（type/host/port），则仅用连接参数启动
      */
     configPath?: string

@@ -162,7 +162,7 @@ server.onMounted(async c => {
 
 server.launch({
     configPath: path.join(
-        process.env['LAGRANGE_CORE_HOME'] || '',
+        process.env['ONEBOT_CORE_HOME'] || '',
         'appsettings.json'
     ),
 

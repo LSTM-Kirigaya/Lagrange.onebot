@@ -3,8 +3,8 @@
  * 通过 .env 配置 host / port / token，不依赖 appsettings.json
  *
  * 使用方式：
- * 1. 复制 .env.example 为 .env，填写 LAGRANGE_WS_HOST、LAGRANGE_WS_PORT、LAGRANGE_WS_ACCESS_TOKEN 等
- * 2. 无配置文件时：可设置 LAGRANGE_CORE_HOME 指向含 appsettings 的目录
+ * 1. 复制 .env.example 为 .env，填写 ONEBOT_WS_HOST、ONEBOT_WS_PORT、ONEBOT_WS_ACCESS_TOKEN 等
+ * 2. 无配置文件时：可设置 ONEBOT_CORE_HOME 指向含 appsettings 的目录
  * 3. 执行: npx tsx src/test/main-forward-ws.ts
  *
  * 若未安装 dotenv，会跳过加载 .env，请先执行 npm install dotenv 以支持 .env 文件。
@@ -58,14 +58,14 @@ async function loadEnv() {
 async function main() {
     await loadEnv();
 
-    const host = process.env.LAGRANGE_WS_HOST;
-    const port = process.env.LAGRANGE_WS_PORT;
-    const accessToken = process.env.LAGRANGE_WS_ACCESS_TOKEN;
-    const type = (process.env.LAGRANGE_WS_TYPE || 'forward-websocket') as 'forward-websocket' | 'backward-websocket';
-    const pathRoute = process.env.LAGRANGE_WS_PATH;
+    const host = process.env.ONEBOT_WS_HOST;
+    const port = process.env.ONEBOT_WS_PORT;
+    const accessToken = process.env.ONEBOT_WS_ACCESS_TOKEN;
+    const type = (process.env.ONEBOT_WS_TYPE || 'forward-websocket') as 'forward-websocket' | 'backward-websocket';
+    const pathRoute = process.env.ONEBOT_WS_PATH;
 
     if (!host || !port) {
-        console.error('请配置 LAGRANGE_WS_HOST 和 LAGRANGE_WS_PORT（.env 或环境变量），并确保已安装 dotenv: npm install dotenv');
+        console.error('请配置 ONEBOT_WS_HOST 和 ONEBOT_WS_PORT（.env 或环境变量），并确保已安装 dotenv: npm install dotenv');
         process.exit(1);
     }
 
